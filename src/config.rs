@@ -141,6 +141,21 @@ pub struct Search {
     matcher: SearchMatcher,
 }
 
+#[non_exhaustive]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct Scroll {
+    step: u32,
+    #[serde(rename = "pageStep")]
+    page_step: u32,
+}
+
+impl Default for Scroll {
+    fn default() -> Self {
+        Self { step: 50, page_step: 400 }
+    }
+}
+
 #[derive(Deserialize, Serialize, Default, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WindowTheme {
     #[default]
@@ -269,6 +284,7 @@ impl Dialog {
 pub struct UserConfig {
     watch: Watch,
     keymaps: HashMap<String, KeyAction>,
+    scroll: Scroll,
     search: Search,
     window: Window,
     preview: Preview,
@@ -280,6 +296,7 @@ impl Default for UserConfig {
         Self {
             watch: Watch::default(),
             keymaps: DEFAULT_KEY_MAPPINGS.iter().map(|(b, a)| (b.to_string(), *a)).collect(),
+            scroll: Scroll::default(),
             search: Search::default(),
             window: Window::default(),
             preview: Preview::default(),
@@ -422,6 +439,10 @@ impl Config {
 
     pub fn keymaps(&self) -> &HashMap<String, KeyAction> {
         &self.user_config.keymaps
+    }
+
+    pub fn scroll(&self) -> &Scroll {
+        &self.user_config.scroll
     }
 
     pub fn search(&self) -> &Search {

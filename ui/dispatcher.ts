@@ -20,7 +20,7 @@ import {
 } from './reducer';
 import type { MessageFromMain } from './ipc';
 import { ReactMarkdownRenderer } from './markdown';
-import { KeyMapping } from './keymaps';
+import { KeyMapping, setScrollStepPixels, setScrollPageStepPixels } from './keymaps';
 import * as log from './log';
 
 // Global action dispatcher to handle IPC messages from the main and key shortcuts
@@ -77,6 +77,8 @@ export class GlobalDispatcher {
                     this.dispatch(pathChanged(msg.path));
                     break;
                 case 'config':
+                    setScrollStepPixels(msg.scroll.step);
+                    setScrollPageStepPixels(msg.scroll.pageStep ?? msg.scroll.step);
                     this.keymap.register(msg.keymaps, this);
                     this.dispatch(
                         initConfig({

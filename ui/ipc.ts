@@ -207,6 +207,10 @@ export type MessageFromMain =
     | {
           kind: 'config';
           keymaps: KeyMaps;
+          scroll: {
+              step: number;
+              pageStep?: number;
+          };
           search: {
               matcher: SearchMatcher;
           };

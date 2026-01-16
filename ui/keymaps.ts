@@ -43,6 +43,25 @@ function scrollTarget(): HTMLElement {
     );
 }
 
+let scrollStepPixels = 50;
+let scrollPageStepPixels = 400;
+
+export function setScrollStepPixels(pixels: number): void {
+    if (!Number.isFinite(pixels) || pixels <= 0) {
+        scrollStepPixels = 50;
+        return;
+    }
+    scrollStepPixels = pixels;
+}
+
+export function setScrollPageStepPixels(pixels: number): void {
+    if (!Number.isFinite(pixels) || pixels <= 0) {
+        scrollPageStepPixels = 400;
+        return;
+    }
+    scrollPageStepPixels = pixels;
+}
+
 export interface KeyShortcut {
     dispatch(dispatcher: GlobalDispatcher): void;
     description: string;
@@ -50,18 +69,18 @@ export interface KeyShortcut {
 
 const KeyShortcuts: Record<KeyAction, KeyShortcut> = {
     ScrollDown: {
-        description: 'Scroll down the page by half of window height.',
+        description: 'Scroll down the page by configured step.',
         dispatch(): void {
             const t = scrollTarget();
-            t.scrollBy(0, t.clientHeight / 2);
+            t.scrollBy(0, scrollStepPixels);
         },
     },
 
     ScrollUp: {
-        description: 'Scroll up the page by half of window height.',
+        description: 'Scroll up the page by configured step.',
         dispatch(): void {
             const t = scrollTarget();
-            t.scrollBy(0, -t.clientHeight / 2);
+            t.scrollBy(0, -scrollStepPixels);
         },
     },
 
@@ -82,18 +101,18 @@ const KeyShortcuts: Record<KeyAction, KeyShortcut> = {
     },
 
     ScrollPageDown: {
-        description: 'Scroll down the page by window height.',
+        description: 'Scroll down the page by configured page step.',
         dispatch(): void {
             const t = scrollTarget();
-            t.scrollBy(0, t.clientHeight);
+            t.scrollBy(0, scrollPageStepPixels);
         },
     },
 
     ScrollPageUp: {
-        description: 'Scroll up the page by window height.',
+        description: 'Scroll up the page by configured page step.',
         dispatch(): void {
             const t = scrollTarget();
-            t.scrollBy(0, -t.clientHeight);
+            t.scrollBy(0, -scrollPageStepPixels);
         },
     },
 

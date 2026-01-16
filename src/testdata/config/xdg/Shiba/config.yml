@@ -6,6 +6,10 @@ watch:
 keymaps:
   Q: Quit
 
+scroll:
+  step: 50
+  pageStep: 400
+
 search:
   matcher: CaseSensitive
 

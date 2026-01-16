@@ -2,6 +2,9 @@ watch:
   file_extensions:
   debounce_throttle: 50
 keymaps:
+scroll:
+  step: 50
+  pageStep: 400
 search:
   matcher: SmartCase
 window:

@@ -1,4 +1,4 @@
-use crate::config::{Config, KeyAction, Search as SearchConfig, SearchMatcher};
+use crate::config::{Config, KeyAction, Scroll as ScrollConfig, Search as SearchConfig, SearchMatcher};
 use crate::persistent::WindowState;
 use anyhow::{Error, Result};
 use serde::{Deserialize, Serialize};
@@ -21,6 +21,7 @@ pub struct WindowAppearance {
 pub enum MessageToRenderer<'a> {
     Config {
         keymaps: &'a HashMap<String, KeyAction>,
+        scroll: &'a ScrollConfig,
         search: &'a SearchConfig,
         recent: &'a [&'a Path],
         home: Option<&'a Path>,

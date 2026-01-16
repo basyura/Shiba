@@ -302,6 +302,7 @@ where
 
                 self.renderer.send_message(MessageToRenderer::Config {
                     keymaps: self.config.keymaps(),
+                    scroll: self.config.scroll(),
                     search: self.config.search(),
                     recent: &self.history.iter().collect::<Vec<_>>(),
                     home: self.preview.home_dir(),

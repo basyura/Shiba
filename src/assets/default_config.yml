@@ -38,6 +38,13 @@ keymaps:
   ctrl+k: ScrollPrevSection
   ?: Help
 
+# Configuration related to keyboard scrolling.
+scroll:
+  # Scroll step size for ScrollDown/ScrollUp (e.g. j/k) in pixels.
+  step: 50
+  # Scroll step size for ScrollPageDown/ScrollPageUp (e.g. ctrl+d/ctrl+u) in pixels.
+  pageStep: 400
+
 # Configuration related to text search.
 search:
   # How search query matches to text. The following preset matchers are available. Note that matcher
