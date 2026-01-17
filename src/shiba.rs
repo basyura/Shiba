@@ -128,6 +128,8 @@ pub struct Shiba<R: Rendering, O, W, D> {
     config: Config,
     preview: PreviewContent,
     init_file: Option<PathBuf>,
+    initialized: bool,
+    pending_open: Vec<PathBuf>,
     _dialog: PhantomData<D>,
     #[cfg(feature = "__sanity")]
     sanity: SanityTest<R::EventSender>,
@@ -179,6 +181,8 @@ where
             config,
             preview: PreviewContent::default(),
             init_file,
+            initialized: false,
+            pending_open: Vec::new(),
             _dialog: PhantomData,
             #[cfg(feature = "__sanity")]
             sanity: SanityTest::new(rendering.create_sender()),
@@ -189,6 +193,27 @@ where
         self.watcher.watch(&path)?; // Watch path at first since the file may not exist yet
         if self.preview.show(&path, &self.renderer)? {
             self.history.push(path);
+        }
+        Ok(())
+    }
+
+    fn open_markdown_paths(&mut self, paths: Vec<PathBuf>) -> Result<()> {
+        for mut path in paths {
+            if !path.is_absolute() {
+                path = match path.canonicalize() {
+                    Ok(path) => path,
+                    Err(err) => {
+                        log::debug!("Could not canonicalize opened path {:?}: {}", path, err);
+                        continue;
+                    }
+                };
+            }
+
+            if !path.is_file() || !self.config.watch().file_extensions().matches(&path) {
+                continue;
+            }
+
+            self.preview_new(path)?;
         }
         Ok(())
     }
@@ -296,6 +321,7 @@ where
         use MessageFromRenderer::*;
         match message {
             Init => {
+                self.initialized = true;
                 if self.config.debug() {
                     self.renderer.send_message(MessageToRenderer::Debug)?;
                 }
@@ -312,8 +338,12 @@ where
                 // Open window when the content is ready. Otherwise a white window flashes when dark theme.
                 self.renderer.show();
 
+                let mut pending = mem::take(&mut self.pending_open);
                 if let Some(path) = mem::take(&mut self.init_file) {
-                    self.preview_new(path)?;
+                    pending.push(path);
+                }
+                if !pending.is_empty() {
+                    self.open_markdown_paths(pending)?;
                 } else {
                     self.renderer.send_message(MessageToRenderer::Welcome)?;
                 }
@@ -404,6 +434,13 @@ where
                     if self.preview.show(&path, &self.renderer)? {
                         self.history.push(path);
                     }
+                }
+            }
+            Event::OpenedFiles(paths) => {
+                if self.initialized {
+                    self.open_markdown_paths(paths)?;
+                } else {
+                    self.pending_open.extend(paths);
                 }
             }
             Event::OpenLocalPath(mut path) => {

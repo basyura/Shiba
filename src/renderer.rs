@@ -1,4 +1,6 @@
-use crate::config::{Config, KeyAction, Scroll as ScrollConfig, Search as SearchConfig, SearchMatcher};
+use crate::config::{
+    Config, KeyAction, Scroll as ScrollConfig, Search as SearchConfig, SearchMatcher,
+};
 use crate::persistent::WindowState;
 use anyhow::{Error, Result};
 use serde::{Deserialize, Serialize};
@@ -76,6 +78,7 @@ pub enum Event {
     WatchedFilesChanged(Vec<PathBuf>),
     OpenLocalPath(PathBuf),
     OpenExternalLink(String),
+    OpenedFiles(Vec<PathBuf>),
     Menu(MenuItem),
     Minimized(bool),
     Error(Error),

@@ -92,6 +92,16 @@ impl Rendering for Wry {
                     log::debug!("Application has started");
                     RenderingFlow::Continue
                 }
+                Event::Opened { urls } => {
+                    let paths: Vec<_> =
+                        urls.into_iter().filter_map(|url| url.to_file_path().ok()).collect();
+                    if paths.is_empty() {
+                        log::debug!("Opened event has no file path to handle");
+                        RenderingFlow::Continue
+                    } else {
+                        handler.on_event(AppEvent::OpenedFiles(paths))
+                    }
+                }
                 Event::WindowEvent { event: WindowEvent::CloseRequested, .. } => {
                     log::debug!("Closing window was requested");
                     RenderingFlow::Exit
