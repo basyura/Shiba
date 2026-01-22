@@ -57,3 +57,11 @@ This software is distributed under [the MIT license](./LICENSE).
 [react]: https://react.dev/
 [v1]: https://github.com/rhysd/Shiba/tree/v1
 [alerts]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts
+
+## Build for apple silicon
+
+```bash
+cargo build --release --target=aarch64-apple-darwin
+bash ./scripts/gen_macos_app.bash（または make Shiba.app）
+```
+
