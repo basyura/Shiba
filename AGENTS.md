@@ -1,5 +1,12 @@
 # Repository Guidelines
 
+## 計画
+
+- 修正を始める前に計画をマークダウンファイルで .plans フォルダ配下に生成してください。
+- 計画のファイル名は連番とし、1つ目を 001 始まりとして修正にあった適切なファイル名としてください。
+- 計画のフォーマットは `001-windows-makefile-conditional.md` を参照すること。
+- 具体的なファイル編集をする前に、修正案を提示すること。
+
 ## Project Structure & Module Organization
 - `src/`: Rust core (Markdown parsing, app logic, platform integration) with submodules like `src/markdown/` and `src/wry/`.
 - `ui/`: React + TypeScript UI (`ui/components/`, `ui/style.css`, `ui/index.html`).

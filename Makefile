@@ -1,6 +1,10 @@
 TS_SRC := $(wildcard ui/*.ts ui/*.tsx ui/components/*.tsx) ui/style.css ui/index.html
 RS_SRC := $(wildcard src/*.rs src/markdown/*.rs src/wry/*.rs) build.rs
+ifeq ($(OS),Windows_NT)
+CSS := $(shell find src/assets -type f -name "*.css")
+else
 CSS := $(shell find -E src/assets -type f -regex .*\.css$ )
+endif
 MAC_APP_ASSETS := assets/Shiba.app/Contents/Info.plist assets/Shiba.app/Contents/Resources/icon.icns
 
 node_modules:
