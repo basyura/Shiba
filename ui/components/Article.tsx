@@ -74,11 +74,18 @@ function dispatchHeadings(root: HTMLElement, dispatch: Dispatch): void {
 export interface Props {
     tree: MarkdownReactTree;
     dispatch: Dispatch;
+    currentPath: string | null;
 }
 
-export const Article: React.FC<Props> = ({ tree, dispatch }) => {
+export const Article: React.FC<Props> = ({ tree, dispatch, currentPath }) => {
     const { root, lastModified } = tree;
     const ref = useRef<HTMLElement>(null);
+
+    useEffect(() => {
+        if (ref.current) {
+            ref.current.scrollTop = 0;
+        }
+    }, [currentPath]);
 
     useEffect(() => {
         const elem = lastModified?.current;

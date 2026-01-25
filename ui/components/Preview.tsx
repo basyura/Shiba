@@ -64,7 +64,7 @@ export const Preview: React.FC<Props> = ({ tree, headings, path, dispatch }) => 
                 <SideBar headings={headings} path={path} />
             </Resizable>
             <Divider orientation="vertical" />
-            <Article tree={tree} dispatch={dispatch} />
+            <Article tree={tree} dispatch={dispatch} currentPath={path} key={path ?? 'no-path'} />
         </Box>
     );
 };
