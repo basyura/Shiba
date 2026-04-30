@@ -21,6 +21,7 @@
 - `make release`: Build the release binary with minified UI assets.
 - `bash ./scripts/gen_macos_app.bash`: Generate `Shiba.app` after both arch builds exist.
 - macOS app build note: `make Shiba.app` expects both `x86_64-apple-darwin` and `aarch64-apple-darwin` builds. If `cargo` comes from Homebrew, set `RUSTC` to the rustup toolchain so cross-arch builds find the stdlibs (example below).
+- ビルドを依頼された場合は、特に指定がない限り Apple Silicon 用バイナリのみを `Shiba.app` として生成する。`make Shiba.app` は universal app 用で x86_64 も要求するため使わない。
 - `npm run watch`: Watch TS, bundling, and Rust checks for active development.
 - `npm run lint`: Run Rust and UI linters/formatters (clippy, rustfmt, tsc, prettier, eslint, stylelint).
 - `cargo test` (or `npm test`): Run Rust tests.

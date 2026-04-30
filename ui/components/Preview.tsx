@@ -13,9 +13,9 @@ import type { Dispatch, Heading } from '../reducer';
 
 const NAV_RESIZE_DIRECTION = {
     top: false,
-    right: true,
+    right: false,
     bottom: false,
-    left: false,
+    left: true,
     topRight: false,
     bottomRight: false,
     bottomLeft: false,
@@ -59,12 +59,12 @@ export const Preview: React.FC<Props> = ({ tree, headings, path, dispatch }) => 
 
     return (
         <Box component="main" sx={sx}>
+            <Article tree={tree} dispatch={dispatch} currentPath={path} key={path ?? 'no-path'} />
+            <Divider orientation="vertical" />
             <Resizable defaultSize={NAV_DEFAULT_SIZE} minWidth="200px" enable={NAV_RESIZE_DIRECTION} as="nav">
                 {titleBar && <WindowBar />}
                 <SideBar headings={headings} path={path} />
             </Resizable>
-            <Divider orientation="vertical" />
-            <Article tree={tree} dispatch={dispatch} currentPath={path} key={path ?? 'no-path'} />
         </Box>
     );
 };
