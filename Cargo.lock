@@ -3167,6 +3167,7 @@ dependencies = [
  "memchr",
  "muda",
  "notify",
+ "objc2-app-kit",
  "once_cell",
  "open",
  "phf 0.13.1",

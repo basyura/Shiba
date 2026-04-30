@@ -9,7 +9,7 @@ use crate::wry::menu::Menu;
 use anyhow::{Context as _, Result};
 use tao::dpi::{LogicalPosition, LogicalSize};
 #[cfg(target_os = "macos")]
-use tao::platform::macos::WindowBuilderExtMacOS as _;
+use tao::platform::macos::{WindowBuilderExtMacOS as _, WindowExtMacOS as _};
 #[cfg(target_os = "linux")]
 use tao::platform::unix::WindowExtUnix;
 use tao::window::{Fullscreen, Theme, Window, WindowBuilder};
@@ -25,6 +25,58 @@ pub type EventLoop = tao::event_loop::EventLoop<Event>;
 
 #[cfg(not(target_os = "macos"))]
 const ICON_RGBA: &[u8] = include_bytes!("../assets/icon_32x32.rgba");
+
+#[cfg(target_os = "macos")]
+const WINDOW_BUTTONS_RIGHT_MARGIN: f64 = 14.0;
+
+#[cfg(target_os = "macos")]
+fn reposition_window_buttons(window: &Window) {
+    use objc2_app_kit::{NSView, NSWindow, NSWindowButton};
+
+    // SAFETY: `WindowExtMacOS::ns_window` returns the live NSWindow owned by `window`.
+    // The pointer remains valid while `window` is alive, and this function only reads and
+    // repositions the standard AppKit titlebar buttons on the main event loop thread.
+    unsafe {
+        let ns_window = &*(window.ns_window().cast::<NSWindow>());
+        let Some(close) = ns_window.standardWindowButton(NSWindowButton::CloseButton) else {
+            log::debug!("Skipping window button repositioning: close button was not found");
+            return;
+        };
+        let Some(miniaturize) = ns_window.standardWindowButton(NSWindowButton::MiniaturizeButton)
+        else {
+            log::debug!("Skipping window button repositioning: miniaturize button was not found");
+            return;
+        };
+
+        let zoom = ns_window.standardWindowButton(NSWindowButton::ZoomButton);
+        let close_rect = NSView::frame(&close);
+        let miniaturize_rect = NSView::frame(&miniaturize);
+        let space_between = miniaturize_rect.origin.x - close_rect.origin.x;
+        if space_between <= 0.0 {
+            log::debug!("Skipping window button repositioning: unexpected button spacing");
+            return;
+        }
+
+        let mut buttons = vec![close, miniaturize];
+        if let Some(zoom) = zoom {
+            buttons.push(zoom);
+        }
+
+        let group_width =
+            close_rect.size.width + space_between * (buttons.len().saturating_sub(1) as f64);
+        let start_x = (ns_window.frame().size.width - WINDOW_BUTTONS_RIGHT_MARGIN - group_width)
+            .max(WINDOW_BUTTONS_RIGHT_MARGIN);
+
+        for (i, button) in buttons.into_iter().enumerate() {
+            let mut rect = NSView::frame(&button);
+            rect.origin.x = start_x + (i as f64 * space_between);
+            button.setFrameOrigin(rect.origin);
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn reposition_window_buttons(_window: &Window) {}
 
 fn create_webview(window: &Window, event_loop: &EventLoop, config: &Config) -> Result<WebView> {
     let ipc_proxy = event_loop.create_proxy();
@@ -221,6 +273,7 @@ impl WebViewRenderer {
         }
 
         let window = builder.build(event_loop)?;
+        reposition_window_buttons(&window);
         if cfg!(target_os = "macos") || config.window().menu_bar {
             menu.toggle(&window)?;
         }
@@ -341,6 +394,10 @@ impl Renderer for WebViewRenderer {
 
     fn set_maximized(&mut self, maximized: bool) {
         self.window.set_maximized(maximized);
+    }
+
+    fn reposition_window_buttons(&self) {
+        reposition_window_buttons(&self.window);
     }
 
     fn window_appearance(&self) -> WindowAppearance {

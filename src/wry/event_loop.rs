@@ -114,7 +114,7 @@ impl Rendering for Wry {
                         log::debug!("Minimized state changed: {is_minimized}");
                         handler.on_event(AppEvent::Minimized(is_minimized))
                     } else {
-                        RenderingFlow::Continue
+                        handler.on_event(AppEvent::WindowResized)
                     }
                 }
                 _ => match self.menu_events.try_receive() {

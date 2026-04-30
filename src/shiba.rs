@@ -466,7 +466,13 @@ where
                 self.opener.open(&link).with_context(|| format!("opening link {:?}", &link))?;
             }
             Event::Menu(item) => return self.handle_menu_item(item),
-            Event::Minimized(is_minimized) => self.renderer.save_memory(is_minimized)?,
+            Event::Minimized(is_minimized) => {
+                self.renderer.save_memory(is_minimized)?;
+                if !is_minimized {
+                    self.renderer.reposition_window_buttons();
+                }
+            }
+            Event::WindowResized => self.renderer.reposition_window_buttons(),
             Event::Error(err) => D::alert(&err),
         }
         Ok(RenderingFlow::Continue)

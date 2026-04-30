@@ -81,6 +81,7 @@ pub enum Event {
     OpenedFiles(Vec<PathBuf>),
     Menu(MenuItem),
     Minimized(bool),
+    WindowResized,
     Error(Error),
 }
 
@@ -177,6 +178,7 @@ pub trait Renderer {
     fn drag_window(&self) -> Result<()>;
     fn is_maximized(&self) -> bool;
     fn set_maximized(&mut self, maximized: bool);
+    fn reposition_window_buttons(&self);
     fn window_appearance(&self) -> WindowAppearance;
     fn show_menu_at(&self, position: Option<(f64, f64)>);
     fn toggle_menu(&mut self) -> Result<()>;
