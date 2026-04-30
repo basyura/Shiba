@@ -2,10 +2,11 @@
 
 ## 計画
 
-- 修正を始める前に計画をマークダウンファイルで .plans フォルダ配下に生成してください。
+- 修正を始める前に計画をマークダウンファイルで .plans フォルダ配下に日本語で生成してください。
 - 計画のファイル名は連番とし、1つ目を 001 始まりとして修正にあった適切なファイル名としてください。
-- 計画のフォーマットは `001-windows-makefile-conditional.md` を参照すること。
 - 具体的なファイル編集をする前に、修正案を提示すること。
+- 指示があるまで新しい計画ファイルを作成せず、このセッションで使用する計画ファイルが明示されている場合のみその計画に反映すること。
+- このセッションで使用する計画ファイルが未指定の場合は、既存の計画ファイルを勝手に選んで更新せず、どの計画ファイルを使うか確認すること。
 
 ## Project Structure & Module Organization
 - `src/`: Rust core (Markdown parsing, app logic, platform integration) with submodules like `src/markdown/` and `src/wry/`.
@@ -21,7 +22,9 @@
 - `make release`: Build the release binary with minified UI assets.
 - `bash ./scripts/gen_macos_app.bash`: Generate `Shiba.app` after both arch builds exist.
 - macOS app build note: `make Shiba.app` expects both `x86_64-apple-darwin` and `aarch64-apple-darwin` builds. If `cargo` comes from Homebrew, set `RUSTC` to the rustup toolchain so cross-arch builds find the stdlibs (example below).
-- ビルドを依頼された場合は、特に指定がない限り Apple Silicon 用バイナリのみを `Shiba.app` として生成する。`make Shiba.app` は universal app 用で x86_64 も要求するため使わない。
+- ビルドを依頼された場合は `make build` だけで終わらせず、特に指定がない限り Apple Silicon 用バイナリのみを `Shiba.app` として生成する。
+- Apple Silicon 専用 `Shiba.app` は、`npm run release` と `cargo build --release --target=aarch64-apple-darwin` を実行し、`assets/Shiba.app` を `Shiba.app` にコピーして `target/aarch64-apple-darwin/release/shiba` を `Shiba.app/Contents/MacOS/shiba` に配置して生成する。
+- `make Shiba.app` は universal app 用で x86_64 も要求するため、特に指定がない限り使わない。
 - `npm run watch`: Watch TS, bundling, and Rust checks for active development.
 - `npm run lint`: Run Rust and UI linters/formatters (clippy, rustfmt, tsc, prettier, eslint, stylelint).
 - `cargo test` (or `npm test`): Run Rust tests.

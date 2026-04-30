@@ -129,11 +129,13 @@ export const SideBar: React.FC<Props> = ({ headings, path }) => {
         listRef.current.addEventListener('mouseleave', callback);
     }, [hideScrollBar]);
 
-    const children = headings.map((h, key) => {
+    const visibleHeadings = headings.filter(h => h.level > 1);
+    const children = visibleHeadings.map((h, key) => {
         const selected = !!h.current;
         const ref = selected ? focusedRef : undefined;
+        const indent = 0.5 + (h.level - 2) * 0.75;
         const buttonStyle = {
-            padding: `0 1em 0 ${h.level}em`,
+            padding: `0 0.5em 0 ${indent}em`,
         };
         const textSx = {
             color: selected ? 'text.primary' : 'text.secondary',
