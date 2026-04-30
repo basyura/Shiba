@@ -59,8 +59,7 @@ function collectHeadings(root: HTMLElement): Heading[] {
 let currentId: number | null = null;
 function dispatchHeadings(root: HTMLElement, dispatch: Dispatch): void {
     if (currentId !== null) {
-        clearTimeout(currentId);
-        currentId = null;
+        return;
     }
 
     const callback = (): void => {
@@ -68,7 +67,7 @@ function dispatchHeadings(root: HTMLElement, dispatch: Dispatch): void {
         currentId = null;
     };
 
-    currentId = setTimeout(callback, 100);
+    currentId = requestAnimationFrame(callback);
 }
 
 export interface Props {
