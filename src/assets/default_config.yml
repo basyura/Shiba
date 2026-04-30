@@ -32,6 +32,8 @@ keymaps:
   right: ScrollRight
   pagedown: ScrollPageDown
   pageup: ScrollPageUp
+  G: ScrollBottom
+  g g: ScrollTop
   ctrl+down: ScrollBottom
   ctrl+up: ScrollTop
   ctrl+j: ScrollNextSection

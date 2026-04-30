@@ -60,6 +60,8 @@ const DEFAULT_KEY_MAPPINGS: &[(&str, KeyAction)] = {
         ("right",     ScrollRight),
         ("pagedown",  ScrollPageDown),
         ("pageup",    ScrollPageUp),
+        ("G",         ScrollBottom),
+        ("g g",       ScrollTop),
         ("ctrl+down", ScrollBottom),
         ("ctrl+up",   ScrollTop),
         ("ctrl+j",    ScrollNextSection),
@@ -67,6 +69,37 @@ const DEFAULT_KEY_MAPPINGS: &[(&str, KeyAction)] = {
         ("?",         Help),
     ]
 };
+
+#[rustfmt::skip]
+const LEGACY_DEFAULT_KEY_MAPPINGS: &[(&str, KeyAction)] = {
+    use KeyAction::*;
+    &[
+        ("j",         ScrollDown),
+        ("k",         ScrollUp),
+        ("h",         ScrollLeft),
+        ("l",         ScrollRight),
+        ("ctrl+b",    Back),
+        ("ctrl+f",    Forward),
+        ("ctrl+o",    OpenFile),
+        ("ctrl+d",    ScrollPageDown),
+        ("ctrl+u",    ScrollPageUp),
+        ("down",      ScrollDown),
+        ("up",        ScrollUp),
+        ("left",      ScrollLeft),
+        ("right",     ScrollRight),
+        ("pagedown",  ScrollPageDown),
+        ("pageup",    ScrollPageUp),
+        ("ctrl+down", ScrollBottom),
+        ("ctrl+up",   ScrollTop),
+        ("ctrl+j",    ScrollNextSection),
+        ("ctrl+k",    ScrollPrevSection),
+        ("?",         Help),
+    ]
+};
+
+fn key_mappings(mappings: &[(&str, KeyAction)]) -> HashMap<String, KeyAction> {
+    mappings.iter().map(|(b, a)| (b.to_string(), *a)).collect()
+}
 
 const DEFAULT_CONFIG_FILE_NAME: &str = "config.yml";
 const CONFIG_FILE_NAMES: [&str; 2] = [DEFAULT_CONFIG_FILE_NAME, "config.yaml"];
@@ -295,7 +328,7 @@ impl Default for UserConfig {
     fn default() -> Self {
         Self {
             watch: Watch::default(),
-            keymaps: DEFAULT_KEY_MAPPINGS.iter().map(|(b, a)| (b.to_string(), *a)).collect(),
+            keymaps: key_mappings(DEFAULT_KEY_MAPPINGS),
             scroll: Scroll::default(),
             search: Search::default(),
             window: Window::default(),
@@ -307,6 +340,20 @@ impl Default for UserConfig {
 
 impl UserConfig {
     const DEFAULT_CONFIG_YAML: &'static str = include_str!("assets/default_config.yml");
+
+    fn upgrade_keymaps(&mut self) {
+        if self.keymaps == key_mappings(LEGACY_DEFAULT_KEY_MAPPINGS) {
+            self.keymaps = key_mappings(DEFAULT_KEY_MAPPINGS);
+            return;
+        }
+
+        if self.keymaps.get("gg") == Some(&KeyAction::ScrollTop)
+            && !self.keymaps.contains_key("g g")
+        {
+            self.keymaps.remove("gg");
+            self.keymaps.insert("g g".to_string(), KeyAction::ScrollTop);
+        }
+    }
 
     fn load(path: impl AsRef<Path>) -> Result<Self> {
         let path = path.as_ref();
@@ -388,6 +435,7 @@ impl Config {
             log::debug!("Config directory does not exist. Using the default config");
             UserConfig::default()
         };
+        user_config.upgrade_keymaps();
 
         if let Some(theme) = options.theme {
             // CLI option has higher priority
@@ -520,6 +568,37 @@ mod tests {
             }
             m.insert(*bind, *a1);
         }
+    }
+
+    #[test]
+    fn upgrade_legacy_default_key_mappings() {
+        let mut cfg = UserConfig {
+            keymaps: key_mappings(LEGACY_DEFAULT_KEY_MAPPINGS),
+            ..UserConfig::default()
+        };
+        cfg.upgrade_keymaps();
+        assert_eq!(cfg.keymaps, key_mappings(DEFAULT_KEY_MAPPINGS));
+    }
+
+    #[test]
+    fn upgrade_broken_gg_key_mapping() {
+        let mut cfg = UserConfig {
+            keymaps: HashMap::from([("gg".to_string(), KeyAction::ScrollTop)]),
+            ..UserConfig::default()
+        };
+        cfg.upgrade_keymaps();
+        assert_eq!(cfg.keymaps.get("g g"), Some(&KeyAction::ScrollTop));
+        assert!(!cfg.keymaps.contains_key("gg"));
+    }
+
+    #[test]
+    fn keep_custom_key_mappings() {
+        let mut cfg = UserConfig {
+            keymaps: HashMap::from([("Q".to_string(), KeyAction::Quit)]),
+            ..UserConfig::default()
+        };
+        cfg.upgrade_keymaps();
+        assert_eq!(cfg.keymaps, HashMap::from([("Q".to_string(), KeyAction::Quit)]));
     }
 
     #[test]
