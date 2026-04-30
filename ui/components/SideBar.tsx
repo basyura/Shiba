@@ -141,6 +141,7 @@ export const SideBar: React.FC<Props> = ({ headings, path }) => {
             color: selected ? 'text.primary' : 'text.secondary',
             overflowX: 'hidden',
             textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
         };
         return (
             <ListItem

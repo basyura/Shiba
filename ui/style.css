@@ -27,7 +27,7 @@ main {
 
 nav {
   height: 100%;
-  min-width: 200px;
+  min-width: 150px;
   align-self: stretch;
   display: flex;
   flex-direction: column;

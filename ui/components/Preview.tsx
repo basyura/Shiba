@@ -23,7 +23,7 @@ const NAV_RESIZE_DIRECTION = {
 };
 
 const NAV_DEFAULT_SIZE = {
-    width: '20%',
+    width: '150px',
     height: '100%',
 };
 
@@ -61,7 +61,7 @@ export const Preview: React.FC<Props> = ({ tree, headings, path, dispatch }) => 
         <Box component="main" sx={sx}>
             <Article tree={tree} dispatch={dispatch} currentPath={path} key={path ?? 'no-path'} />
             <Divider orientation="vertical" />
-            <Resizable defaultSize={NAV_DEFAULT_SIZE} minWidth="200px" enable={NAV_RESIZE_DIRECTION} as="nav">
+            <Resizable defaultSize={NAV_DEFAULT_SIZE} minWidth="150px" enable={NAV_RESIZE_DIRECTION} as="nav">
                 {titleBar && <WindowBar />}
                 <SideBar headings={headings} path={path} />
             </Resizable>
