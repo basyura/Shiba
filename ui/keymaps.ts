@@ -4,7 +4,11 @@ import type { GlobalDispatcher } from './dispatcher';
 import { sendMessage, type KeyMaps, type KeyAction } from './ipc';
 import * as log from './log';
 
-function scrollTo(candidates: HTMLElement[] | NodeListOf<HTMLElement>, pred: (e: number, s: number) => boolean): void {
+function scrollTo(
+    candidates: HTMLElement[] | NodeListOf<HTMLElement>,
+    pred: (e: number, s: number) => boolean,
+    wrap = true,
+): void {
     if (candidates.length === 0) {
         return;
     }
@@ -30,7 +34,7 @@ function scrollTo(candidates: HTMLElement[] | NodeListOf<HTMLElement>, pred: (e:
         }
     }
 
-    if (!scrolled) {
+    if (!scrolled && wrap) {
         article.scrollTo(0, candidates[0].clientTop);
     }
 }
@@ -135,7 +139,7 @@ const KeyShortcuts: Record<KeyAction, KeyShortcut> = {
         description: 'Scroll to the next section header.',
         dispatch(): void {
             const headings: NodeListOf<HTMLElement> = document.querySelectorAll('article > h1,h2,h3,h4,h5,h6');
-            scrollTo(headings, (e, s) => e > s);
+            scrollTo(headings, (e, s) => e > s, false);
         },
     },
 

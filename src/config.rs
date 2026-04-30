@@ -64,6 +64,8 @@ const DEFAULT_KEY_MAPPINGS: &[(&str, KeyAction)] = {
         ("g g",       ScrollTop),
         ("ctrl+down", ScrollBottom),
         ("ctrl+up",   ScrollTop),
+        ("ctrl+n",    ScrollNextSection),
+        ("ctrl+p",    ScrollPrevSection),
         ("ctrl+j",    ScrollNextSection),
         ("ctrl+k",    ScrollPrevSection),
         ("?",         Help),
