@@ -40,6 +40,7 @@ keymaps:
   ctrl+p: ScrollPrevSection
   ctrl+j: ScrollNextSection
   ctrl+k: ScrollPrevSection
+  f12: OpenDevTools
   ?: Help
 
 # Configuration related to keyboard scrolling.

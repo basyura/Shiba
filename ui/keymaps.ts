@@ -262,6 +262,13 @@ const KeyShortcuts: Record<KeyAction, KeyShortcut> = {
         },
     },
 
+    OpenDevTools: {
+        description: 'Open DevTools.',
+        dispatch(): void {
+            sendMessage({ kind: 'open_devtools' });
+        },
+    },
+
     Quit: {
         description: 'Quit the application.',
         dispatch(): void {

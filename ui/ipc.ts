@@ -34,6 +34,7 @@ export type KeyAction =
     | 'ZoomOut'
     | 'ShowMenu'
     | 'ToggleMenuBar'
+    | 'OpenDevTools'
     | 'Quit';
 
 export type KeyMaps = Record<string, KeyAction>;
@@ -308,6 +309,9 @@ export type MessageToMain =
       }
     | {
           kind: 'toggle_menu_bar';
+      }
+    | {
+          kind: 'open_devtools';
       }
     | {
           kind: 'error';

@@ -35,7 +35,6 @@ lto = "thin"
 
 [features]
 default = []
-devtools = ["wry/devtools"]
 __bench = []
 __sanity = []
 
@@ -65,11 +64,11 @@ zstd = "0.13.3"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "0.3.2", default-features = false, features = ["NSButton", "NSView", "NSWindow"] }
-wry = { version = "0.53.5", features = ["transparent"] }
+wry = { version = "0.53.5", features = ["transparent", "devtools"] }
 window-vibrancy = "0.7.1"
 
 [target.'cfg(not(target_os = "macos"))'.dependencies]
-wry = "0.53.5"
+wry = { version = "0.53.5", features = ["devtools"] }
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.62.2", features = ["Win32_Foundation", "Win32_System_Console", "Win32_UI_WindowsAndMessaging"] }

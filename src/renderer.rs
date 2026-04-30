@@ -60,15 +60,27 @@ pub enum MessageFromRenderer {
     Forward,
     Back,
     Quit,
-    Search { query: String, index: Option<usize>, matcher: SearchMatcher },
-    OpenFile { path: String },
+    Search {
+        query: String,
+        index: Option<usize>,
+        matcher: SearchMatcher,
+    },
+    OpenFile {
+        path: String,
+    },
     ZoomIn,
     ZoomOut,
     DragWindow,
     ToggleMaximized,
-    OpenMenu { position: Option<(f64, f64)> },
+    OpenMenu {
+        position: Option<(f64, f64)>,
+    },
     ToggleMenuBar,
-    Error { message: String },
+    #[serde(rename = "open_devtools", alias = "open_dev_tools")]
+    OpenDevTools,
+    Error {
+        message: String,
+    },
 }
 
 #[derive(Debug)]
@@ -182,6 +194,7 @@ pub trait Renderer {
     fn window_appearance(&self) -> WindowAppearance;
     fn show_menu_at(&self, position: Option<(f64, f64)>);
     fn toggle_menu(&mut self) -> Result<()>;
+    fn open_devtools(&self);
     fn save_memory(&mut self, is_low: bool) -> Result<()>;
     fn delete_cookies(&self) -> Result<()>;
 }
@@ -242,5 +255,15 @@ mod tests {
             prev = z.factor();
         }
         assert_eq!(z.zoom_out(), None);
+    }
+
+    #[test]
+    fn parse_open_devtools_message() {
+        let msg: MessageFromRenderer = serde_json::from_str(r#"{"kind":"open_devtools"}"#).unwrap();
+        assert!(matches!(msg, MessageFromRenderer::OpenDevTools));
+
+        let msg: MessageFromRenderer =
+            serde_json::from_str(r#"{"kind":"open_dev_tools"}"#).unwrap();
+        assert!(matches!(msg, MessageFromRenderer::OpenDevTools));
     }
 }

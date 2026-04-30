@@ -92,7 +92,13 @@ fn create_webview(window: &Window, event_loop: &EventLoop, config: &Config) -> R
     builder = builder
         .with_url("shiba://localhost/index.html")
         .with_ipc_handler(move |msg| {
-            let msg: MessageFromRenderer = serde_json::from_str(msg.body()).unwrap();
+            let msg: MessageFromRenderer = match serde_json::from_str(msg.body()) {
+                Ok(msg) => msg,
+                Err(err) => {
+                    log::error!("Could not parse message from WebView: {err}: {:?}", msg.body());
+                    return;
+                }
+            };
             log::debug!("Message from WebView: {msg:?}");
             if let Err(err) = ipc_proxy.send_event(Event::RendererMessage(msg)) {
                 log::error!("Could not send user event for message from WebView: {err}");
@@ -169,7 +175,7 @@ fn create_webview(window: &Window, event_loop: &EventLoop, config: &Config) -> R
             Response::builder().status(status).header(CONTENT_TYPE, mime).body(body).unwrap()
         })
         .with_focused(true)
-        .with_devtools(cfg!(any(debug_assertions, feature = "devtools")));
+        .with_devtools(true);
 
     #[cfg(target_os = "windows")]
     {
@@ -287,9 +293,8 @@ impl WebViewRenderer {
             log::debug!("Zoom factor was set to {}", zoom_factor);
         }
 
-        #[cfg(any(debug_assertions, feature = "devtools"))]
         if config.debug() {
-            webview.open_devtools(); // This method is defined in debug build only
+            webview.open_devtools();
             log::debug!("Opened DevTools for debugging");
         }
 
@@ -415,6 +420,11 @@ impl Renderer for WebViewRenderer {
 
     fn toggle_menu(&mut self) -> Result<()> {
         self.menu.toggle(&self.window)
+    }
+
+    fn open_devtools(&self) {
+        self.webview.open_devtools();
+        log::debug!("Opened DevTools");
     }
 
     #[cfg(target_os = "windows")]
