@@ -23,6 +23,7 @@ keymaps:
   l: ScrollRight
   ctrl+b: Back
   ctrl+f: Forward
+  /: Search
   ctrl+o: OpenFile
   ctrl+d: ScrollPageDown
   ctrl+u: ScrollPageUp

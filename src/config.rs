@@ -52,6 +52,39 @@ const DEFAULT_KEY_MAPPINGS: &[(&str, KeyAction)] = {
         ("l",         ScrollRight),
         ("ctrl+b",    Back),
         ("ctrl+f",    Forward),
+        ("/",         Search),
+        ("ctrl+o",    OpenFile),
+        ("ctrl+d",    ScrollPageDown),
+        ("ctrl+u",    ScrollPageUp),
+        ("down",      ScrollDown),
+        ("up",        ScrollUp),
+        ("left",      ScrollLeft),
+        ("right",     ScrollRight),
+        ("pagedown",  ScrollPageDown),
+        ("pageup",    ScrollPageUp),
+        ("G",         ScrollBottom),
+        ("g g",       ScrollTop),
+        ("ctrl+down", ScrollBottom),
+        ("ctrl+up",   ScrollTop),
+        ("ctrl+n",    ScrollNextSection),
+        ("ctrl+p",    ScrollPrevSection),
+        ("ctrl+j",    ScrollNextSection),
+        ("ctrl+k",    ScrollPrevSection),
+        ("f12",       OpenDevTools),
+        ("?",         Help),
+    ]
+};
+
+#[rustfmt::skip]
+const DEFAULT_KEY_MAPPINGS_WITHOUT_SLASH: &[(&str, KeyAction)] = {
+    use KeyAction::*;
+    &[
+        ("j",         ScrollDown),
+        ("k",         ScrollUp),
+        ("h",         ScrollLeft),
+        ("l",         ScrollRight),
+        ("ctrl+b",    Back),
+        ("ctrl+f",    Forward),
         ("ctrl+o",    OpenFile),
         ("ctrl+d",    ScrollPageDown),
         ("ctrl+u",    ScrollPageUp),
@@ -378,6 +411,7 @@ impl UserConfig {
 
     fn upgrade_keymaps(&mut self) {
         if self.keymaps == key_mappings(LEGACY_DEFAULT_KEY_MAPPINGS)
+            || self.keymaps == key_mappings(DEFAULT_KEY_MAPPINGS_WITHOUT_SLASH)
             || self.keymaps == key_mappings(DEFAULT_KEY_MAPPINGS_WITHOUT_DEVTOOLS)
         {
             self.keymaps = key_mappings(DEFAULT_KEY_MAPPINGS);
@@ -611,6 +645,16 @@ mod tests {
     fn upgrade_legacy_default_key_mappings() {
         let mut cfg = UserConfig {
             keymaps: key_mappings(LEGACY_DEFAULT_KEY_MAPPINGS),
+            ..UserConfig::default()
+        };
+        cfg.upgrade_keymaps();
+        assert_eq!(cfg.keymaps, key_mappings(DEFAULT_KEY_MAPPINGS));
+    }
+
+    #[test]
+    fn upgrade_default_key_mappings_without_slash() {
+        let mut cfg = UserConfig {
+            keymaps: key_mappings(DEFAULT_KEY_MAPPINGS_WITHOUT_SLASH),
             ..UserConfig::default()
         };
         cfg.upgrade_keymaps();
