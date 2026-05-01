@@ -41,6 +41,7 @@ keymaps:
   ctrl+p: ScrollPrevSection
   ctrl+j: ScrollNextSection
   ctrl+k: ScrollPrevSection
+  ctrl+l: ToggleSideBar
   f12: OpenDevTools
   ?: Help
 

@@ -26,15 +26,19 @@ const NAV_DEFAULT_SIZE = {
     width: '150px',
     height: '100%',
 };
+const NAV_HIDDEN_STYLE = {
+    display: 'none',
+};
 
 export interface Props {
     tree: MarkdownReactTree;
     headings: Heading[];
     path: string | null;
     dispatch: Dispatch;
+    sideBar: boolean;
 }
 
-export const Preview: React.FC<Props> = ({ tree, headings, path, dispatch }) => {
+export const Preview: React.FC<Props> = ({ tree, headings, path, dispatch, sideBar }) => {
     const { titleBar, vibrant, borderTop } = useContext(ConfigContext);
 
     if (tree.root === null) {
@@ -60,8 +64,14 @@ export const Preview: React.FC<Props> = ({ tree, headings, path, dispatch }) => 
     return (
         <Box component="main" sx={sx}>
             <Article tree={tree} dispatch={dispatch} currentPath={path} key={path ?? 'no-path'} />
-            <Divider orientation="vertical" />
-            <Resizable defaultSize={NAV_DEFAULT_SIZE} minWidth="150px" enable={NAV_RESIZE_DIRECTION} as="nav">
+            {sideBar && <Divider orientation="vertical" />}
+            <Resizable
+                defaultSize={NAV_DEFAULT_SIZE}
+                minWidth="150px"
+                enable={NAV_RESIZE_DIRECTION}
+                style={sideBar ? undefined : NAV_HIDDEN_STYLE}
+                as="nav"
+            >
                 {titleBar && <WindowBar />}
                 <SideBar headings={headings} path={path} />
             </Resizable>

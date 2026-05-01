@@ -1,5 +1,5 @@
 import { bind as bindKey } from 'mousetrap';
-import { openOutline, openHistory, openHelp } from './reducer';
+import { openOutline, openHistory, openHelp, toggleSideBar } from './reducer';
 import type { GlobalDispatcher } from './dispatcher';
 import { sendMessage, type KeyMaps, type KeyAction } from './ipc';
 import * as log from './log';
@@ -259,6 +259,13 @@ const KeyShortcuts: Record<KeyAction, KeyShortcut> = {
         description: 'Toggle menu bar at the top of window.',
         dispatch(): void {
             sendMessage({ kind: 'toggle_menu_bar' });
+        },
+    },
+
+    ToggleSideBar: {
+        description: 'Toggle side bar at the right of window.',
+        dispatch(dispatcher: GlobalDispatcher): void {
+            dispatcher.dispatch(toggleSideBar());
         },
     },
 

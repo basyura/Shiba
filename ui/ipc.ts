@@ -33,6 +33,7 @@ export type KeyAction =
     | 'ZoomIn'
     | 'ZoomOut'
     | 'ShowMenu'
+    | 'ToggleSideBar'
     | 'ToggleMenuBar'
     | 'OpenDevTools'
     | 'Quit';

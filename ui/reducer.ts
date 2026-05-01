@@ -48,6 +48,7 @@ export interface State {
     welcome: boolean;
     headings: Heading[];
     currentPath: string | null;
+    sideBar: boolean;
 }
 
 export const INITIAL_CONFIG: Config = {
@@ -77,6 +78,7 @@ export const INITIAL_STATE: State = {
     welcome: false,
     headings: [],
     currentPath: null,
+    sideBar: true,
 };
 
 const MAX_HISTORIES = 50;
@@ -134,6 +136,9 @@ type Action =
       }
     | {
           kind: 'welcome';
+      }
+    | {
+          kind: 'toggle_sidebar';
       };
 export type Dispatch = React.Dispatch<Action>;
 
@@ -204,6 +209,8 @@ export function reducer(state: State, action: Action): State {
             return { ...state, files: action.paths };
         case 'welcome':
             return { ...state, welcome: true };
+        case 'toggle_sidebar':
+            return { ...state, sideBar: !state.sideBar };
         default:
             throw new Error(`Unknown action: ${JSON.stringify(action)}`);
     }
@@ -253,6 +260,10 @@ export function openHistory(): Action {
 
 export function closeHistory(): Action {
     return { kind: 'history', open: false };
+}
+
+export function toggleSideBar(): Action {
+    return { kind: 'toggle_sidebar' };
 }
 
 export function pathChanged(path: string): Action {
