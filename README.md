@@ -2,6 +2,7 @@
 =================================================
 
 **This project is based on [rhysd/Shiba](https://github.com/rhysd/Shiba).**
+This is a fork maintained for my personal use.
 
 ## Summary
 
