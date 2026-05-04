@@ -23,10 +23,13 @@ keymaps:
   l: ScrollRight
   ctrl+b: Back
   ctrl+f: Forward
-  /: Search
   ctrl+o: OpenFile
   ctrl+d: ScrollPageDown
   ctrl+u: ScrollPageUp
+  ctrl+r: History
+  ctrl+n: ScrollNextSection
+  ctrl+p: ScrollPrevSection
+  /: Search
   down: ScrollDown
   up: ScrollUp
   left: ScrollLeft
@@ -37,8 +40,6 @@ keymaps:
   g g: ScrollTop
   ctrl+down: ScrollBottom
   ctrl+up: ScrollTop
-  ctrl+n: ScrollNextSection
-  ctrl+p: ScrollPrevSection
   ctrl+j: ScrollNextSection
   ctrl+k: ScrollPrevSection
   ctrl+l: ToggleSideBar

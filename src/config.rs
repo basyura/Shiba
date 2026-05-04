@@ -53,10 +53,13 @@ const DEFAULT_KEY_MAPPINGS: &[(&str, KeyAction)] = {
         ("l",         ScrollRight),
         ("ctrl+b",    Back),
         ("ctrl+f",    Forward),
-        ("/",         Search),
         ("ctrl+o",    OpenFile),
         ("ctrl+d",    ScrollPageDown),
         ("ctrl+u",    ScrollPageUp),
+        ("ctrl+r",    History),
+        ("ctrl+n",    ScrollNextSection),
+        ("ctrl+p",    ScrollPrevSection),
+        ("/",         Search),
         ("down",      ScrollDown),
         ("up",        ScrollUp),
         ("left",      ScrollLeft),
@@ -67,8 +70,6 @@ const DEFAULT_KEY_MAPPINGS: &[(&str, KeyAction)] = {
         ("g g",       ScrollTop),
         ("ctrl+down", ScrollBottom),
         ("ctrl+up",   ScrollTop),
-        ("ctrl+n",    ScrollNextSection),
-        ("ctrl+p",    ScrollPrevSection),
         ("ctrl+j",    ScrollNextSection),
         ("ctrl+k",    ScrollPrevSection),
         ("ctrl+l",    ToggleSideBar),
@@ -202,6 +203,22 @@ const LEGACY_DEFAULT_KEY_MAPPINGS: &[(&str, KeyAction)] = {
 
 fn key_mappings(mappings: &[(&str, KeyAction)]) -> HashMap<String, KeyAction> {
     mappings.iter().map(|(b, a)| (b.to_string(), *a)).collect()
+}
+
+fn default_key_mappings() -> HashMap<String, KeyAction> {
+    key_mappings(DEFAULT_KEY_MAPPINGS)
+}
+
+fn deserialize_key_mappings<'de, D>(deserializer: D) -> Result<HashMap<String, KeyAction>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let overrides = Option::<HashMap<String, KeyAction>>::deserialize(deserializer)?;
+    let mut keymaps = default_key_mappings();
+    if let Some(overrides) = overrides {
+        keymaps.extend(overrides);
+    }
+    Ok(keymaps)
 }
 
 const DEFAULT_CONFIG_FILE_NAME: &str = "config.yml";
@@ -419,6 +436,7 @@ impl Dialog {
 #[serde(deny_unknown_fields)]
 pub struct UserConfig {
     watch: Watch,
+    #[serde(default = "default_key_mappings", deserialize_with = "deserialize_key_mappings")]
     keymaps: HashMap<String, KeyAction>,
     scroll: Scroll,
     search: Search,
@@ -660,6 +678,21 @@ mod tests {
     fn generated_default_config() {
         let cfg: UserConfig = serde_yaml::from_str(UserConfig::DEFAULT_CONFIG_YAML).unwrap();
         assert_eq!(cfg, UserConfig::default());
+    }
+
+    #[test]
+    fn merge_custom_key_mappings_from_config() {
+        let cfg: UserConfig = serde_yaml::from_str(CONFIG_OK).unwrap();
+        assert_eq!(cfg.keymaps.get("Q"), Some(&KeyAction::Quit));
+        assert_eq!(cfg.keymaps.get("ctrl+r"), Some(&KeyAction::History));
+        assert_eq!(cfg.keymaps.get("f12"), Some(&KeyAction::OpenDevTools));
+    }
+
+    #[test]
+    fn empty_key_mappings_fall_back_to_default() {
+        let config = CONFIG_OK.replace("keymaps:\n  Q: Quit", "keymaps:");
+        let cfg: UserConfig = serde_yaml::from_str(&config).unwrap();
+        assert_eq!(cfg.keymaps, key_mappings(DEFAULT_KEY_MAPPINGS));
     }
 
     #[test]
