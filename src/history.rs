@@ -17,26 +17,27 @@ impl History {
             if let Some(mut recent) = config.data_dir().load::<RecentFilesOwned>() {
                 recent.paths.truncate(max_items);
                 log::debug!("Loaded {} paths as recent files history", recent.paths.len());
-                return Self { max_items, index: 0, items: VecDeque::from(recent.paths) };
+                let index = recent.paths.len().saturating_sub(1);
+                return Self { max_items, index, items: VecDeque::from(recent.paths) };
             }
         }
 
         Self { max_items, index: 0, items: VecDeque::new() }
     }
 
-    pub fn push(&mut self, item: PathBuf) {
+    pub fn push(&mut self, item: PathBuf) -> bool {
         if self.max_items == 0 {
-            return;
+            return false;
         }
 
         if let Some(current) = self.current() {
             if current == &item {
-                return; // Do not push the same path repeatedly
+                return false; // Do not push the same path repeatedly
             }
         } else {
             log::debug!("Push first history item: {:?}", item);
             self.items.push_back(item);
-            return;
+            return true;
         }
 
         if self.items.len() == self.max_items {
@@ -51,6 +52,7 @@ impl History {
         self.index += 1;
         log::debug!("Push new history item at index {}: {:?}", self.index, item);
         self.items.push_back(item);
+        true
     }
 
     pub fn forward(&mut self) {

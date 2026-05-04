@@ -192,7 +192,14 @@ where
     fn preview_new(&mut self, path: PathBuf) -> Result<()> {
         self.watcher.watch(&path)?; // Watch path at first since the file may not exist yet
         if self.preview.show(&path, &self.renderer)? {
-            self.history.push(path);
+            self.push_history(path)?;
+        }
+        Ok(())
+    }
+
+    fn push_history(&mut self, path: PathBuf) -> Result<()> {
+        if self.history.push(path) {
+            self.history.save(&self.config)?;
         }
         Ok(())
     }
@@ -362,7 +369,7 @@ where
             OpenFile { path } => {
                 let path = PathBuf::from(path);
                 if self.preview.show(&path, &self.renderer)? {
-                    self.history.push(path);
+                    self.push_history(path)?;
                 }
             }
             ZoomIn => self.zoom(Zoom::In)?,
@@ -433,7 +440,7 @@ where
                         path = path.canonicalize()?;
                     }
                     if self.preview.show(&path, &self.renderer)? {
-                        self.history.push(path);
+                        self.push_history(path)?;
                     }
                 }
             }
