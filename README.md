@@ -1,10 +1,9 @@
 ![icon](assets/icon.iconset/icon_64x64.png) Shiba
 =================================================
-[![CI][ci-badge]][ci]
-[![dogs respected][shiba-badge]][shiba]
 
-> [!WARNING]
-> Shiba v2 is a work in progress
+**This project is based on [rhysd/Shiba](https://github.com/rhysd/Shiba).**
+
+## Summary
 
 [Shiba][shiba] is a simple [Markdown][gh-markdown] preview application to be used with your favorite text editor.
 It is designed for simplicity, performance, keyboard-friendliness.
@@ -43,6 +42,7 @@ Shiba v2 is the complete rewrite of v1 using Rust and platform-specific WebView.
 ## License
 
 This software is distributed under [the MIT license](./LICENSE).
+This project is based on [rhysd/Shiba](https://github.com/rhysd/Shiba).
 
 [ci]: https://github.com/rhysd/Shiba/actions/workflows/watchdogs.yml
 [ci-badge]: https://github.com/rhysd/Shiba/actions/workflows/watchdogs.yml/badge.svg
@@ -64,4 +64,3 @@ This software is distributed under [the MIT license](./LICENSE).
 cargo build --release --target=aarch64-apple-darwin
 bash ./scripts/gen_macos_app.bash（または make Shiba.app）
 ```
-
