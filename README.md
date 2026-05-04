@@ -9,7 +9,7 @@ This is a fork maintained for my personal use.
 [Shiba][shiba] is a simple [Markdown][gh-markdown] preview application to be used with your favorite text editor.
 It is designed for simplicity, performance, keyboard-friendliness.
 
-![Screenshot of light/dark windows](https://raw.githubusercontent.com/rhysd/ss/master/Shiba/main.jpg)
+![Screenshot of light/dark windows](https://raw.githubusercontent.com/basyura/Shiba/master/images/main.png)
 
 Features:
 
