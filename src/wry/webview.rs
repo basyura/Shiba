@@ -26,6 +26,9 @@ pub type EventLoop = tao::event_loop::EventLoop<Event>;
 #[cfg(not(target_os = "macos"))]
 const ICON_RGBA: &[u8] = include_bytes!("../assets/icon_32x32.rgba");
 
+#[cfg(target_os = "windows")]
+const TASKBAR_ICON_RGBA: &[u8] = include_bytes!("../assets/icon_256x256.rgba");
+
 #[cfg(target_os = "macos")]
 const WINDOW_BUTTONS_RIGHT_MARGIN: f64 = 14.0;
 
@@ -279,6 +282,14 @@ impl WebViewRenderer {
         }
 
         let window = builder.build(event_loop)?;
+        #[cfg(target_os = "windows")]
+        {
+            use tao::platform::windows::WindowExtWindows as _;
+            use tao::window::Icon;
+
+            let icon = Icon::from_rgba(TASKBAR_ICON_RGBA.into(), 256, 256).unwrap();
+            window.set_taskbar_icon(Some(icon));
+        }
         reposition_window_buttons(&window);
         if cfg!(target_os = "macos") || config.window().menu_bar {
             menu.toggle(&window)?;
