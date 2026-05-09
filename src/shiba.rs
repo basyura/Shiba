@@ -1,3 +1,4 @@
+use crate::assets::user_css_path;
 use crate::cli::Options;
 use crate::config::{Config, SearchMatcher};
 use crate::dialog::Dialog;
@@ -126,6 +127,7 @@ pub struct Shiba<R: Rendering, O, W, D> {
     history: History,
     watcher: W,
     config: Config,
+    user_css_path: Option<PathBuf>,
     preview: PreviewContent,
     init_file: Option<PathBuf>,
     initialized: bool,
@@ -166,8 +168,18 @@ where
 
         let renderer = rendering.create_renderer(&config)?;
 
-        let filter = PathFilter::new(config.watch());
+        let user_css_path = user_css_path(&config);
+        let mut filter = PathFilter::new(config.watch());
+        if let Some(path) = &user_css_path {
+            filter.allow_path(path.clone());
+        }
         let mut watcher = W::new(rendering.create_sender(), filter)?;
+        if let Some(path) = &user_css_path {
+            log::debug!("Watching user CSS path: {:?}", path);
+            if let Err(err) = watcher.watch(path) {
+                log::error!("Could not watch user CSS file {:?}: {}", path, err);
+            }
+        }
         for path in watch_paths {
             log::debug!("Watching initial path: {:?}", path);
             watcher.watch(&path)?;
@@ -179,6 +191,7 @@ where
             history: History::load(&config),
             watcher,
             config,
+            user_css_path,
             preview: PreviewContent::default(),
             init_file,
             initialized: false,
@@ -318,6 +331,25 @@ where
         self.renderer.set_maximized(maximized);
     }
 
+    fn take_user_css_changes(&self, paths: &mut Vec<PathBuf>) -> bool {
+        let before = paths.len();
+        paths.retain(|path| !self.is_user_css_path(path));
+        before != paths.len()
+    }
+
+    fn is_user_css_path(&self, path: &Path) -> bool {
+        let Some(css_path) = &self.user_css_path else {
+            return false;
+        };
+        if path == css_path {
+            return true;
+        }
+        match path.canonicalize() {
+            Ok(path) => path == *css_path,
+            Err(_) => false,
+        }
+    }
+
     fn open_config(&mut self) -> Result<()> {
         let path = self.config.config_file()?;
         log::debug!("Opening config file via menu item: {:?}", path);
@@ -428,6 +460,13 @@ where
             }
             Event::WatchedFilesChanged(mut paths) => {
                 log::debug!("Files changed: {:?}", paths);
+                if self.take_user_css_changes(&mut paths) {
+                    log::debug!("User CSS changed. Reloading stylesheet");
+                    self.renderer.send_message(MessageToRenderer::ReloadStyle)?;
+                    if paths.is_empty() {
+                        return Ok(RenderingFlow::Continue);
+                    }
+                }
                 if let Some(current) = self.history.current() {
                     if paths.contains(current) {
                         self.preview.show(current, &self.renderer)?;

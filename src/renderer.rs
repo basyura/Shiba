@@ -43,6 +43,7 @@ pub enum MessageToRenderer<'a> {
         percent: u16,
     },
     Reload,
+    ReloadStyle,
     Debug,
     AlwaysOnTop {
         pinned: bool,

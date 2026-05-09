@@ -63,6 +63,16 @@ export class GlobalDispatcher {
         }
     }
 
+    reloadStyle(): void {
+        const link = document.querySelector<HTMLLinkElement>('#markdown-css');
+        if (!link) {
+            log.error('The markdown CSS link is not found');
+            return;
+        }
+
+        link.href = `/github-markdown.css?t=${Date.now()}`;
+    }
+
     async handleIpcMessage(msg: MessageFromMain): Promise<void> {
         log.debug('Received IPC message from main:', msg.kind, msg);
         // This method must not throw exception since the main process call this method like `window.postShibaMessageFromMain(msg)`.
@@ -118,6 +128,9 @@ export class GlobalDispatcher {
                     break;
                 case 'reload':
                     this.dispatch(notifyReload());
+                    break;
+                case 'reload_style':
+                    this.reloadStyle();
                     break;
                 case 'always_on_top':
                     this.dispatch(notifyAlwaysOnTop(msg.pinned));

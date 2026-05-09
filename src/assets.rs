@@ -3,6 +3,7 @@ use phf::phf_map;
 use std::borrow::Cow;
 use std::fs;
 use std::io::Write;
+use std::path::PathBuf;
 
 #[cfg(debug_assertions)]
 const BUNDLE_JS: &[u8] = include_bytes!("assets/bundle.js");
@@ -150,21 +151,30 @@ fn load_hljs_css(hl: &PreviewHighlight) -> Cow<'static, [u8]> {
     buf.into()
 }
 
-fn load_user_css(config: &Config) -> Option<Vec<u8>> {
+pub fn user_css_path(config: &Config) -> Option<PathBuf> {
     let config_dir = config.config_dir()?;
     let css_path = config.preview().css_path()?;
     let css_path = config_dir.join(css_path);
 
+    match css_path.canonicalize() {
+        Ok(path) => Some(path),
+        Err(err) if css_path.is_absolute() => {
+            log::debug!("Could not canonicalize user CSS path {:?}: {}", css_path, err);
+            Some(css_path)
+        }
+        Err(err) => {
+            log::debug!("Could not canonicalize user CSS path {:?}: {}", css_path, err);
+            std::env::current_dir().ok().map(|dir| dir.join(css_path))
+        }
+    }
+}
+
+fn load_user_css_path(css_path: PathBuf) -> Option<Vec<u8>> {
     log::debug!("Loading user CSS at {:?}", css_path);
     match fs::read(&css_path) {
         Ok(css) => Some(css),
         Err(err) => {
-            log::error!(
-                "Could not load CSS file {:?} specified in config file at {:?}: {}",
-                css_path,
-                config_dir,
-                err,
-            );
+            log::error!("Could not load CSS file {:?} specified in config file: {}", css_path, err);
             None
         }
     }
@@ -182,21 +192,27 @@ fn guess_mime(path: &str) -> &'static str {
 
 pub struct Assets {
     hljs_css: Cow<'static, [u8]>,
-    markdown_css: Cow<'static, [u8]>,
+    user_css_path: Option<PathBuf>,
 }
 
 impl Assets {
     pub fn new(config: &Config) -> Self {
         let hljs_css = load_hljs_css(config.preview().highlight());
-        let markdown_css = if let Some(css) = load_user_css(config) {
-            Cow::Owned(css)
-        } else {
-            Cow::Borrowed(GITHUB_MARKDOWN_CSS)
-        };
+        let user_css_path = user_css_path(config);
 
         // Note: We don't keep bundle.js payload on memory because it's large.
 
-        Self { hljs_css, markdown_css }
+        Self { hljs_css, user_css_path }
+    }
+
+    fn load_markdown_css(&self) -> Cow<'static, [u8]> {
+        if let Some(path) = &self.user_css_path {
+            if let Some(css) = load_user_css_path(path.clone()) {
+                return Cow::Owned(css);
+            }
+        }
+
+        Cow::Borrowed(GITHUB_MARKDOWN_CSS)
     }
 
     pub fn load(&self, path: &str) -> (Option<Cow<'static, [u8]>>, &'static str) {
@@ -210,7 +226,7 @@ impl Assets {
             #[cfg(not(debug_assertions))]
             "/bundle.js"           => generated::load_bundle_js().into(), // Assumes bundle.js is loaded only once
             "/style.css"           => STYLE_CSS.into(),
-            "/github-markdown.css" => self.markdown_css.clone(),
+            "/github-markdown.css" => self.load_markdown_css(),
             "/hljs-theme.css"      => self.hljs_css.clone(),
             "/logo.png"            => LOGO_PNG.into(),
             #[cfg(debug_assertions)]

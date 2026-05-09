@@ -254,6 +254,9 @@ export type MessageFromMain =
           kind: 'reload';
       }
     | {
+          kind: 'reload_style';
+      }
+    | {
           kind: 'always_on_top';
           pinned: boolean;
       }

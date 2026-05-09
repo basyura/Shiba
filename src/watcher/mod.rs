@@ -12,7 +12,7 @@ use crate::config::{FileExtensions, Watch as Config};
 use crate::renderer::EventSender;
 use anyhow::Result;
 use notify::event::{CreateKind, DataChange, EventKind, ModifyKind};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
@@ -37,6 +37,7 @@ fn should_watch_event(kind: EventKind) -> bool {
 
 pub struct PathFilter {
     extensions: FileExtensions,
+    extra_paths: HashSet<PathBuf>,
     last_changed: HashMap<PathBuf, Instant>,
     debounce_throttle: Duration,
 }
@@ -45,7 +46,26 @@ impl PathFilter {
     pub fn new(config: &Config) -> Self {
         let extensions = config.file_extensions().clone();
         let debounce_throttle = config.debounce_throttle();
-        Self { extensions, last_changed: HashMap::new(), debounce_throttle }
+        Self {
+            extensions,
+            extra_paths: HashSet::new(),
+            last_changed: HashMap::new(),
+            debounce_throttle,
+        }
+    }
+
+    pub fn allow_path(&mut self, path: PathBuf) {
+        self.extra_paths.insert(path);
+    }
+
+    fn matches_extra_path(&self, path: &Path) -> bool {
+        if self.extra_paths.contains(path) {
+            return true;
+        }
+        match path.canonicalize() {
+            Ok(path) => self.extra_paths.contains(&path),
+            Err(_) => false,
+        }
     }
 
     // XXX: Watcher sends the event at the first file-changed event durating debounce throttle.
@@ -66,7 +86,9 @@ impl PathFilter {
     }
 
     fn should_retain(&mut self, path: &Path) -> bool {
-        self.extensions.matches(path) && path.is_file() && self.debounce(path)
+        (self.extensions.matches(path) || self.matches_extra_path(path))
+            && path.is_file()
+            && self.debounce(path)
     }
 
     fn cleanup_debouncer(&mut self) {
@@ -120,5 +142,16 @@ mod tests {
         assert!(!filter.should_retain(Path::new("README.md"))); // Debounced
         assert!(!filter.should_retain(Path::new("Cargo.toml")));
         assert!(!filter.should_retain(Path::new("this-file-does-not-exist.md")));
+    }
+
+    #[test]
+    fn path_filter_retain_extra_path() {
+        let mut filter = PathFilter::new(&Config::default());
+        let path = PathBuf::from("Cargo.toml");
+        filter.allow_path(path.clone());
+
+        assert!(filter.should_retain(&path));
+        assert!(!filter.should_retain(&path)); // Debounced
+        assert!(!filter.should_retain(Path::new("other.css")));
     }
 }
