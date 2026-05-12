@@ -4,6 +4,19 @@
 **This project is based on [rhysd/Shiba](https://github.com/rhysd/Shiba).**
 This is a fork maintained for my personal use.
 
+- [x] スクロール量の設定
+- [x] Markdown ファイルの「このアプリで開く」対応
+- [x] ファイル切り替え時のスクロール位置リセット
+- [x] サイドバーの右側配置
+- [x] サイドバー表示の整理
+- [x] macOS ウィンドウボタンの右上配置
+- [x] Vim 風スクロールキーの追加
+- [x] 現在見出しの強調表示
+- [x] F12 で DevTools 表示
+- [x] `/` で検索ボックス表示
+- [x] `ctrl+l` でサイドバー開閉
+- [ ] plantuml 対応
+
 ## Summary
 
 [Shiba][shiba] is a simple [Markdown][gh-markdown] preview application to be used with your favorite text editor.
@@ -28,17 +41,6 @@ Features:
 - Cross platform; macOS, Windows, Linux are supported
 - Customizable with [a YAML config file](./src/assets/default_config.yml) (color theme, keyboard shortcuts, custom CSS, ...)
 - Dogs are respected :dog2:
-
-## Documentation
-
-All documentations are in the [docs](./docs) directory.
-
-- [Installation](./docs/installation.md)
-- ...More docs will be added
-
-## About v2
-
-Shiba v2 is the complete rewrite of v1 using Rust and platform-specific WebView. For v1, please visit [the `v1` branch][v1].
 
 ## License
 
