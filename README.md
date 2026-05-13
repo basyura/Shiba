@@ -16,6 +16,8 @@ This is a fork maintained for my personal use.
 - [x] `/` で検索ボックス表示
 - [x] `ctrl+l` でサイドバー開閉
 - [ ] plantuml 対応
+- [ ] ピン留めショートカット
+- [ ] エディタで開く
 
 ## Summary
 
