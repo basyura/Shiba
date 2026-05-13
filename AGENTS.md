@@ -28,6 +28,9 @@
 - `npm run watch`: Watch TS, bundling, and Rust checks for active development.
 - `npm run lint`: Run Rust and UI linters/formatters (clippy, rustfmt, tsc, prettier, eslint, stylelint).
 - `cargo test` (or `npm test`): Run Rust tests.
+- Windows ビルドを依頼された場合は、特に指定がない限り Windows 64bit 用の `target/release/shiba.exe` のみを生成し、`shiba.msi` は生成しない。
+- Windows 64bit 用 `shiba.exe` は、`./build_win.sh` を実行して生成する。このスクリプトは `make target/release/shiba.exe` を実行し、`npm run lint:tsc`、`npm run release`、`cargo build --release` により成果物を生成する。
+- 生成後は `ls -lh target/release/shiba.exe` で成果物を確認する。
 
 Example for universal macOS build:
 ```sh
