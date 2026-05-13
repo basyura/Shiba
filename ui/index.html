@@ -10,6 +10,17 @@
     </head>
     <body>
         <div id="shiba-root"></div>
+        <script>
+            (() => {
+                const platform = navigator.userAgentData?.platform ?? navigator.platform;
+
+                if (/mac/i.test(platform)) {
+                    document.body.classList.add('platform-darwin');
+                } else if (/win/i.test(platform)) {
+                    document.body.classList.add('platform-windows');
+                }
+            })();
+        </script>
         <script src="/bundle.js"></script>
     </body>
 </html>
