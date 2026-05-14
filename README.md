@@ -18,6 +18,7 @@ This is a fork maintained for my personal use.
 - [ ] plantuml 対応
 - [ ] ピン留めショートカット
 - [ ] エディタで開く
+- [ ] hitahint
 
 ## Summary
 
