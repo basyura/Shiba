@@ -19,6 +19,7 @@ This is a fork maintained for my personal use.
 - [ ] ピン留めショートカット
 - [ ] エディタで開く
 - [ ] hitahint
+- [ ] ファイルを開く際のフォルダを開いてるファイル基準にする。ファイルを開いていない場合は default を使う。
 
 ## Summary
 
