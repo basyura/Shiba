@@ -224,6 +224,7 @@ export type MessageFromMain =
               vibrancy: boolean;
               scrollBar: boolean;
               borderTop: boolean;
+              alwaysOnTop: boolean;
           };
       }
     | {

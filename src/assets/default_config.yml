@@ -43,7 +43,7 @@ keymaps:
   ctrl+j: ScrollNextSection
   ctrl+k: ScrollPrevSection
   ctrl+l: ToggleSideBar
-  ctrl+shift+p: ToggleAlwaysOnTop
+  ctrl+command+p: ToggleAlwaysOnTop
   f12: OpenDevTools
   ?: Help
 
@@ -75,7 +75,7 @@ window:
   # - Dark: always use dark theme
   # - Light: always use light theme
   theme: System
-  # Application window is always on top of other windows.
+  # Application window starts unpinned. Use the pin/unpin shortcut to keep it on top.
   always_on_top: false
   # Default window size (width and height) in physical pixels. When `null` is set, the default window
   # size 800x600 pixels is used. When `restore` is set to `true` and there is a saved window state,

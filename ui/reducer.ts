@@ -12,10 +12,6 @@ export type NotificationContent =
       }
     | {
           kind: 'reload';
-      }
-    | {
-          kind: 'alwaysOnTop';
-          pinned: boolean;
       };
 
 export interface Heading {
@@ -49,6 +45,7 @@ export interface State {
     headings: Heading[];
     currentPath: string | null;
     sideBar: boolean;
+    alwaysOnTop: boolean;
 }
 
 export const INITIAL_CONFIG: Config = {
@@ -79,6 +76,7 @@ export const INITIAL_STATE: State = {
     headings: [],
     currentPath: null,
     sideBar: true,
+    alwaysOnTop: false,
 };
 
 const MAX_HISTORIES = 50;
@@ -139,6 +137,10 @@ type Action =
       }
     | {
           kind: 'toggle_sidebar';
+      }
+    | {
+          kind: 'always_on_top';
+          pinned: boolean;
       };
 export type Dispatch = React.Dispatch<Action>;
 
@@ -211,6 +213,8 @@ export function reducer(state: State, action: Action): State {
             return { ...state, welcome: true };
         case 'toggle_sidebar':
             return { ...state, sideBar: !state.sideBar };
+        case 'always_on_top':
+            return { ...state, alwaysOnTop: action.pinned };
         default:
             throw new Error(`Unknown action: ${JSON.stringify(action)}`);
     }
@@ -290,8 +294,8 @@ export function notifyReload(): Action {
     return { kind: 'notification', notification: { kind: 'reload' } };
 }
 
-export function notifyAlwaysOnTop(pinned: boolean): Action {
-    return { kind: 'notification', notification: { kind: 'alwaysOnTop', pinned } };
+export function setAlwaysOnTop(pinned: boolean): Action {
+    return { kind: 'always_on_top', pinned };
 }
 
 export function setRecentFiles(paths: string[]): Action {

@@ -28,6 +28,7 @@ main {
 nav {
   height: 100%;
   min-width: 150px;
+  position: relative;
   align-self: stretch;
   display: flex;
   flex-direction: column;
@@ -46,6 +47,13 @@ article {
 /* Both <pre> from github-markdown.css and <code> from highlight.js are trying to add 1em padding. */
 pre code.hljs {
   padding: 0;
+}
+
+.pin-status {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  pointer-events: none;
 }
 
 .tippy-content {

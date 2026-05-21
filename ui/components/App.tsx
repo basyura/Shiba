@@ -41,6 +41,7 @@ export const App: React.FC<Props> = ({ dispatcher }) => {
         headings,
         currentPath,
         sideBar,
+        alwaysOnTop,
     } = state;
 
     let searchInput;
@@ -86,6 +87,7 @@ export const App: React.FC<Props> = ({ dispatcher }) => {
                     path={currentPath}
                     dispatch={dispatch}
                     sideBar={sideBar}
+                    alwaysOnTop={alwaysOnTop}
                 />
                 {searchInput}
                 {outlineDialog}

@@ -3,7 +3,6 @@ import {
     type State,
     INITIAL_STATE,
     initConfig,
-    notifyAlwaysOnTop,
     notifyReload,
     notifyZoom,
     openHelp,
@@ -14,6 +13,7 @@ import {
     previewContent,
     searchNext,
     searchPrevious,
+    setAlwaysOnTop,
     setRecentFiles,
     setSearchMatcher,
     welcome,
@@ -99,6 +99,7 @@ export class GlobalDispatcher {
                             homeDir: msg.home,
                         }),
                     );
+                    this.dispatch(setAlwaysOnTop(msg.window.alwaysOnTop));
                     this.dispatch(setSearchMatcher(msg.search.matcher));
                     this.dispatch(setRecentFiles(msg.recent));
                     break;
@@ -133,7 +134,7 @@ export class GlobalDispatcher {
                     this.reloadStyle();
                     break;
                 case 'always_on_top':
-                    this.dispatch(notifyAlwaysOnTop(msg.pinned));
+                    this.dispatch(setAlwaysOnTop(msg.pinned));
                     break;
                 case 'debug':
                     log.enableDebug();

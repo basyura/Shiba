@@ -15,6 +15,7 @@ pub struct WindowAppearance {
     pub vibrancy: bool,
     pub scroll_bar: bool,
     pub border_top: bool,
+    pub always_on_top: bool,
 }
 
 #[derive(Serialize)]

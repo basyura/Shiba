@@ -36,9 +36,10 @@ export interface Props {
     path: string | null;
     dispatch: Dispatch;
     sideBar: boolean;
+    alwaysOnTop: boolean;
 }
 
-export const Preview: React.FC<Props> = ({ tree, headings, path, dispatch, sideBar }) => {
+export const Preview: React.FC<Props> = ({ tree, headings, path, dispatch, sideBar, alwaysOnTop }) => {
     const { titleBar, vibrant, borderTop } = useContext(ConfigContext);
 
     if (tree.root === null) {
@@ -74,6 +75,7 @@ export const Preview: React.FC<Props> = ({ tree, headings, path, dispatch, sideB
             >
                 {titleBar && <WindowBar />}
                 <SideBar headings={headings} path={path} />
+                {alwaysOnTop && <div className="pin-status">📌</div>}
             </Resizable>
         </Box>
     );

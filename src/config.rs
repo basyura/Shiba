@@ -207,8 +207,24 @@ fn key_mappings(mappings: &[(&str, KeyAction)]) -> HashMap<String, KeyAction> {
     mappings.iter().map(|(b, a)| (b.to_string(), *a)).collect()
 }
 
+#[cfg(target_os = "macos")]
+const DEFAULT_TOGGLE_ALWAYS_ON_TOP_KEY: &str = "ctrl+command+p";
+#[cfg(target_os = "windows")]
+const DEFAULT_TOGGLE_ALWAYS_ON_TOP_KEY: &str = "ctrl+alt+p";
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
+const DEFAULT_TOGGLE_ALWAYS_ON_TOP_KEY: &str = "ctrl+shift+p";
+
 fn default_key_mappings() -> HashMap<String, KeyAction> {
-    key_mappings(DEFAULT_KEY_MAPPINGS)
+    let mut keymaps = key_mappings(DEFAULT_KEY_MAPPINGS);
+    keymaps.remove("ctrl+shift+p");
+    keymaps.insert(DEFAULT_TOGGLE_ALWAYS_ON_TOP_KEY.to_string(), KeyAction::ToggleAlwaysOnTop);
+    keymaps
+}
+
+fn default_key_mappings_with_legacy_toggle_always_on_top() -> HashMap<String, KeyAction> {
+    let mut keymaps = default_key_mappings();
+    keymaps.insert("ctrl+shift+p".to_string(), KeyAction::ToggleAlwaysOnTop);
+    keymaps
 }
 
 fn deserialize_key_mappings<'de, D>(deserializer: D) -> Result<HashMap<String, KeyAction>, D::Error>
@@ -451,7 +467,7 @@ impl Default for UserConfig {
     fn default() -> Self {
         Self {
             watch: Watch::default(),
-            keymaps: key_mappings(DEFAULT_KEY_MAPPINGS),
+            keymaps: default_key_mappings(),
             scroll: Scroll::default(),
             search: Search::default(),
             window: Window::default(),
@@ -469,8 +485,10 @@ impl UserConfig {
             || self.keymaps == key_mappings(DEFAULT_KEY_MAPPINGS_WITHOUT_SIDEBAR_TOGGLE)
             || self.keymaps == key_mappings(DEFAULT_KEY_MAPPINGS_WITHOUT_SLASH)
             || self.keymaps == key_mappings(DEFAULT_KEY_MAPPINGS_WITHOUT_DEVTOOLS)
+            || self.keymaps == key_mappings(DEFAULT_KEY_MAPPINGS)
+            || self.keymaps == default_key_mappings_with_legacy_toggle_always_on_top()
         {
-            self.keymaps = key_mappings(DEFAULT_KEY_MAPPINGS);
+            self.keymaps = default_key_mappings();
             return;
         }
 
@@ -525,7 +543,11 @@ impl UserConfig {
         })?;
 
         let config_path = config_dir.join(DEFAULT_CONFIG_FILE_NAME);
-        fs::write(&config_path, Self::DEFAULT_CONFIG_YAML)
+        let yaml = Self::DEFAULT_CONFIG_YAML.replace(
+            "ctrl+command+p: ToggleAlwaysOnTop",
+            &format!("{DEFAULT_TOGGLE_ALWAYS_ON_TOP_KEY}: ToggleAlwaysOnTop"),
+        );
+        fs::write(&config_path, yaml)
             .with_context(|| format!("Could not generate config file at {:?}", &config_path))?;
 
         log::info!("Generated the default config file at {:?}", config_path);
@@ -678,7 +700,11 @@ mod tests {
 
     #[test]
     fn generated_default_config() {
-        let cfg: UserConfig = serde_yaml::from_str(UserConfig::DEFAULT_CONFIG_YAML).unwrap();
+        let yaml = UserConfig::DEFAULT_CONFIG_YAML.replace(
+            "ctrl+command+p: ToggleAlwaysOnTop",
+            &format!("{DEFAULT_TOGGLE_ALWAYS_ON_TOP_KEY}: ToggleAlwaysOnTop"),
+        );
+        let cfg: UserConfig = serde_yaml::from_str(&yaml).unwrap();
         assert_eq!(cfg, UserConfig::default());
     }
 
@@ -694,11 +720,11 @@ mod tests {
     fn empty_key_mappings_fall_back_to_default() {
         let config = CONFIG_OK.replace("keymaps:\n  Q: Quit", "keymaps:");
         let cfg: UserConfig = serde_yaml::from_str(&config).unwrap();
-        assert_eq!(cfg.keymaps, key_mappings(DEFAULT_KEY_MAPPINGS));
+        assert_eq!(cfg.keymaps, default_key_mappings());
     }
 
     #[test]
-    fn default_key_mappings() {
+    fn default_key_mappings_do_not_conflict() {
         let mut m = HashMap::new();
         for (bind, a1) in DEFAULT_KEY_MAPPINGS {
             if let Some(a2) = m.get(bind) {
@@ -706,10 +732,19 @@ mod tests {
             }
             if let Some(i) = bind.find('+') {
                 let modifier = &bind[..i];
-                assert!(matches!(modifier, "ctrl" | "alt"), "invalid modifier {:?}", modifier);
+                assert!(
+                    matches!(modifier, "ctrl" | "alt" | "command"),
+                    "invalid modifier {:?}",
+                    modifier
+                );
             }
             m.insert(*bind, *a1);
         }
+
+        assert_eq!(
+            default_key_mappings().get(DEFAULT_TOGGLE_ALWAYS_ON_TOP_KEY),
+            Some(&KeyAction::ToggleAlwaysOnTop)
+        );
     }
 
     #[test]
@@ -719,7 +754,7 @@ mod tests {
             ..UserConfig::default()
         };
         cfg.upgrade_keymaps();
-        assert_eq!(cfg.keymaps, key_mappings(DEFAULT_KEY_MAPPINGS));
+        assert_eq!(cfg.keymaps, default_key_mappings());
     }
 
     #[test]
@@ -729,7 +764,7 @@ mod tests {
             ..UserConfig::default()
         };
         cfg.upgrade_keymaps();
-        assert_eq!(cfg.keymaps, key_mappings(DEFAULT_KEY_MAPPINGS));
+        assert_eq!(cfg.keymaps, default_key_mappings());
     }
 
     #[test]
@@ -739,7 +774,7 @@ mod tests {
             ..UserConfig::default()
         };
         cfg.upgrade_keymaps();
-        assert_eq!(cfg.keymaps, key_mappings(DEFAULT_KEY_MAPPINGS));
+        assert_eq!(cfg.keymaps, default_key_mappings());
     }
 
     #[test]
@@ -770,7 +805,17 @@ mod tests {
             ..UserConfig::default()
         };
         cfg.upgrade_keymaps();
-        assert_eq!(cfg.keymaps, key_mappings(DEFAULT_KEY_MAPPINGS));
+        assert_eq!(cfg.keymaps, default_key_mappings());
+    }
+
+    #[test]
+    fn upgrade_default_key_mappings_with_legacy_toggle_always_on_top() {
+        let mut cfg = UserConfig {
+            keymaps: default_key_mappings_with_legacy_toggle_always_on_top(),
+            ..UserConfig::default()
+        };
+        cfg.upgrade_keymaps();
+        assert_eq!(cfg.keymaps, default_key_mappings());
     }
 
     #[test]

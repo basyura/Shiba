@@ -235,7 +235,7 @@ impl WebViewRenderer {
                 y,
                 fullscreen,
                 zoom_level,
-                always_on_top,
+                always_on_top: _,
                 maximized,
             } = state;
             builder = builder
@@ -246,13 +246,13 @@ impl WebViewRenderer {
             } else if maximized {
                 builder = builder.with_maximized(true);
             }
-            (zoom_level, always_on_top)
+            (zoom_level, false)
         } else {
             if let Some(size) = config.window().default_size {
                 let size = LogicalSize { width: size.width as f64, height: size.height as f64 };
                 builder = builder.with_inner_size(size);
             }
-            (ZoomLevel::default(), config.window().always_on_top)
+            (ZoomLevel::default(), false)
         };
 
         if always_on_top {
@@ -422,6 +422,7 @@ impl Renderer for WebViewRenderer {
             vibrancy: cfg!(target_os = "macos"),
             scroll_bar: cfg!(target_os = "macos"),
             border_top: cfg!(target_os = "windows"),
+            always_on_top: self.always_on_top,
         }
     }
 
