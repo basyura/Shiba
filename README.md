@@ -15,6 +15,7 @@ This is a fork maintained for my personal use.
 - [x] F12 で DevTools 表示
 - [x] `/` で検索ボックス表示
 - [x] `ctrl+l` でサイドバー開閉
+- [x] ローカルの相対パス画像表示
 - [ ] plantuml 対応
 - [ ] ピン留めショートカット
 - [ ] エディタで開く

@@ -190,6 +190,41 @@ fn guess_mime(path: &str) -> &'static str {
     "application/octet-stream"
 }
 
+fn decode_url_path(path: &str) -> Cow<'_, str> {
+    let bytes = path.as_bytes();
+    let Some(first_percent) = bytes.iter().position(|&b| b == b'%') else {
+        return Cow::Borrowed(path);
+    };
+
+    fn hex_value(b: u8) -> Option<u8> {
+        match b {
+            b'0'..=b'9' => Some(b - b'0'),
+            b'a'..=b'f' => Some(b - b'a' + 10),
+            b'A'..=b'F' => Some(b - b'A' + 10),
+            _ => None,
+        }
+    }
+
+    let mut decoded = Vec::with_capacity(bytes.len());
+    decoded.extend_from_slice(&bytes[..first_percent]);
+
+    let mut i = first_percent;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            if let (Some(hi), Some(lo)) = (hex_value(bytes[i + 1]), hex_value(bytes[i + 2])) {
+                decoded.push((hi << 4) | lo);
+                i += 3;
+                continue;
+            }
+        }
+
+        decoded.push(bytes[i]);
+        i += 1;
+    }
+
+    String::from_utf8_lossy(&decoded).into_owned().into()
+}
+
 pub struct Assets {
     hljs_css: Cow<'static, [u8]>,
     user_css_path: Option<PathBuf>,
@@ -216,10 +251,11 @@ impl Assets {
     }
 
     pub fn load(&self, path: &str) -> (Option<Cow<'static, [u8]>>, &'static str) {
-        let mime = guess_mime(path);
+        let path = decode_url_path(path);
+        let mime = guess_mime(&path);
 
         #[rustfmt::skip]
-        let body = match path {
+        let body = match path.as_ref() {
             "/index.html"          => INDEX_HTML.into(),
             #[cfg(debug_assertions)]
             "/bundle.js"           => BUNDLE_JS.into(),
@@ -295,6 +331,31 @@ mod tests {
 
         assert!(bytes.is_some());
         assert_eq!(mime, "image/png");
+    }
+
+    #[test]
+    fn load_percent_encoded_dynamic_resource() {
+        let assets = Assets::new(&Config::default());
+
+        let dir = std::env::temp_dir().join(format!("shiba-assets-test-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let image = dir.join("image with #.png");
+        fs::write(&image, b"test").unwrap();
+
+        let mut path = image.to_string_lossy().into_owned();
+        path = path.replace(' ', "%20").replace('#', "%23");
+        #[cfg(target_os = "windows")]
+        {
+            path = path.replace('\\', "/");
+        }
+
+        let (bytes, mime) = assets.load(&path);
+
+        assert_eq!(bytes.unwrap().as_ref(), b"test");
+        assert_eq!(mime, "image/png");
+
+        fs::remove_file(image).unwrap();
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]
