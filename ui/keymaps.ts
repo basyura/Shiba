@@ -262,6 +262,13 @@ const KeyShortcuts: Record<KeyAction, KeyShortcut> = {
         },
     },
 
+    ToggleAlwaysOnTop: {
+        description: 'Pin or unpin the window on top of other windows.',
+        dispatch(): void {
+            sendMessage({ kind: 'toggle_always_on_top' });
+        },
+    },
+
     ToggleSideBar: {
         description: 'Toggle side bar at the right of window.',
         dispatch(dispatcher: GlobalDispatcher): void {

@@ -16,8 +16,8 @@ This is a fork maintained for my personal use.
 - [x] `/` で検索ボックス表示
 - [x] `ctrl+l` でサイドバー開閉
 - [x] ローカルの相対パス画像表示
+- [x] ピン留めショートカット
 - [ ] plantuml 対応
-- [ ] ピン留めショートカット
 - [ ] エディタで開く
 - [ ] hitahint
 - [ ] ファイルを開く際のフォルダを開いてるファイル基準にする。ファイルを開いていない場合は default を使う。

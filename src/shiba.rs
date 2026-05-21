@@ -411,6 +411,7 @@ where
             Quit => return Ok(RenderingFlow::Exit),
             OpenMenu { position } => self.renderer.show_menu_at(position),
             ToggleMenuBar => self.renderer.toggle_menu()?,
+            ToggleAlwaysOnTop => self.toggle_always_on_top()?,
             OpenDevTools => self.renderer.open_devtools(),
             Error { message } => anyhow::bail!("Error reported from renderer: {}", message),
         }

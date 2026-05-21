@@ -43,6 +43,7 @@ keymaps:
   ctrl+j: ScrollNextSection
   ctrl+k: ScrollPrevSection
   ctrl+l: ToggleSideBar
+  ctrl+shift+p: ToggleAlwaysOnTop
   f12: OpenDevTools
   ?: Help
 

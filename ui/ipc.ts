@@ -35,6 +35,7 @@ export type KeyAction =
     | 'ShowMenu'
     | 'ToggleSideBar'
     | 'ToggleMenuBar'
+    | 'ToggleAlwaysOnTop'
     | 'OpenDevTools'
     | 'Quit';
 
@@ -313,6 +314,9 @@ export type MessageToMain =
       }
     | {
           kind: 'toggle_menu_bar';
+      }
+    | {
+          kind: 'toggle_always_on_top';
       }
     | {
           kind: 'open_devtools';

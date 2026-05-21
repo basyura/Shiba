@@ -39,6 +39,7 @@ pub enum KeyAction {
     ShowMenu,
     ToggleSideBar,
     ToggleMenuBar,
+    ToggleAlwaysOnTop,
     OpenDevTools,
     Quit,
 }
@@ -73,6 +74,7 @@ const DEFAULT_KEY_MAPPINGS: &[(&str, KeyAction)] = {
         ("ctrl+j",    ScrollNextSection),
         ("ctrl+k",    ScrollPrevSection),
         ("ctrl+l",    ToggleSideBar),
+        ("ctrl+shift+p", ToggleAlwaysOnTop),
         ("f12",       OpenDevTools),
         ("?",         Help),
     ]

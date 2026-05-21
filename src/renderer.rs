@@ -77,6 +77,7 @@ pub enum MessageFromRenderer {
         position: Option<(f64, f64)>,
     },
     ToggleMenuBar,
+    ToggleAlwaysOnTop,
     #[serde(rename = "open_devtools", alias = "open_dev_tools")]
     OpenDevTools,
     Error {
@@ -266,5 +267,12 @@ mod tests {
         let msg: MessageFromRenderer =
             serde_json::from_str(r#"{"kind":"open_dev_tools"}"#).unwrap();
         assert!(matches!(msg, MessageFromRenderer::OpenDevTools));
+    }
+
+    #[test]
+    fn parse_toggle_always_on_top_message() {
+        let msg: MessageFromRenderer =
+            serde_json::from_str(r#"{"kind":"toggle_always_on_top"}"#).unwrap();
+        assert!(matches!(msg, MessageFromRenderer::ToggleAlwaysOnTop));
     }
 }
