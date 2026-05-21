@@ -73,9 +73,13 @@ export const Preview: React.FC<Props> = ({ tree, headings, path, dispatch, sideB
                 style={sideBar ? undefined : NAV_HIDDEN_STYLE}
                 as="nav"
             >
-                {titleBar && <WindowBar />}
+                {titleBar && (
+                    <div className="nav-titlebar">
+                        {alwaysOnTop && <div className="pin-status">📌</div>}
+                        <WindowBar />
+                    </div>
+                )}
                 <SideBar headings={headings} path={path} />
-                {alwaysOnTop && <div className="pin-status">📌</div>}
             </Resizable>
         </Box>
     );

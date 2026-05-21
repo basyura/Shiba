@@ -28,7 +28,6 @@ main {
 nav {
   height: 100%;
   min-width: 150px;
-  position: relative;
   align-self: stretch;
   display: flex;
   flex-direction: column;
@@ -49,10 +48,15 @@ pre code.hljs {
   padding: 0;
 }
 
+.nav-titlebar {
+  display: flex;
+  align-items: center;
+}
+
 .pin-status {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
+  width: 24px;
+  padding-left: 4px;
+  text-align: center;
   pointer-events: none;
 }
 
