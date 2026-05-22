@@ -6,6 +6,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Button from '@mui/material/Button';
 import PetsIcon from '@mui/icons-material/Pets';
+import PushPinIcon from '@mui/icons-material/PushPin';
 import Tooltip from '@mui/material/Tooltip';
 import Divider from '@mui/material/Divider';
 import Box from '@mui/material/Box';
@@ -67,13 +68,15 @@ const MENU_BUTTON_STYLE = { margin: 'auto 0' };
 
 interface ListHeaderProps {
     path: string | null;
+    alwaysOnTop: boolean;
 }
 
-const ListHeader: React.FC<ListHeaderProps> = ({ path }) => {
+const ListHeader: React.FC<ListHeaderProps> = ({ path, alwaysOnTop }) => {
     if (path?.startsWith('\\\\?\\')) {
         path = path.slice(4); // Strip UNC path
     }
     const title = <Typography variant="body2">{path}</Typography>;
+    const icon = alwaysOnTop ? <PushPinIcon /> : <PetsIcon />;
     return (
         <Box component="header" sx={LIST_HEADER_SX}>
             <Tooltip title={title} arrow slotProps={TOOLTIP_SLOT_PROPS}>
@@ -82,7 +85,7 @@ const ListHeader: React.FC<ListHeaderProps> = ({ path }) => {
                     color="inherit"
                     fullWidth
                     disableFocusRipple
-                    startIcon={<PetsIcon />}
+                    startIcon={icon}
                     sx={LIST_HEADER_BUTTON_SX}
                     onClick={onHeaderClick}
                 >
@@ -104,9 +107,10 @@ const LIST_SX = {
 interface Props {
     headings: Heading[];
     path: string | null;
+    alwaysOnTop: boolean;
 }
 
-export const SideBar: React.FC<Props> = ({ headings, path }) => {
+export const SideBar: React.FC<Props> = ({ headings, path, alwaysOnTop }) => {
     const { hideScrollBar } = useContext(ConfigContext);
 
     const focusedRef = useRef<HTMLLIElement>(null);
@@ -167,7 +171,7 @@ export const SideBar: React.FC<Props> = ({ headings, path }) => {
 
     return (
         <>
-            <ListHeader path={path} />
+            <ListHeader path={path} alwaysOnTop={alwaysOnTop} />
             <Divider />
             <List className={className} sx={LIST_SX} ref={listRef}>
                 {children}

@@ -53,13 +53,6 @@ pre code.hljs {
   align-items: center;
 }
 
-.pin-status {
-  width: 24px;
-  padding-left: 4px;
-  text-align: center;
-  pointer-events: none;
-}
-
 .tippy-content {
   font-size: 0.8rem;
 }

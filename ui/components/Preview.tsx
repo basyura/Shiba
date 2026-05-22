@@ -75,11 +75,10 @@ export const Preview: React.FC<Props> = ({ tree, headings, path, dispatch, sideB
             >
                 {titleBar && (
                     <div className="nav-titlebar">
-                        {alwaysOnTop && <div className="pin-status">📌</div>}
                         <WindowBar />
                     </div>
                 )}
-                <SideBar headings={headings} path={path} />
+                <SideBar headings={headings} path={path} alwaysOnTop={alwaysOnTop} />
             </Resizable>
         </Box>
     );
