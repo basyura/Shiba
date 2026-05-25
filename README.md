@@ -17,10 +17,10 @@ This is a fork maintained for my personal use.
 - [x] `ctrl+l` でサイドバー開閉
 - [x] ローカルの相対パス画像表示
 - [x] ピン留めショートカット
+- [x] ファイルを開く際のフォルダを開いてるファイル基準にする。ファイルを開いていない場合は default を使う。
 - [ ] plantuml 対応
 - [ ] エディタで開く
 - [ ] hitahint
-- [ ] ファイルを開く際のフォルダを開いてるファイル基準にする。ファイルを開いていない場合は default を使う。
 
 ## Summary
 
