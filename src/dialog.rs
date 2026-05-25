@@ -10,7 +10,7 @@ pub enum DialogMessageLevel {
 }
 
 pub trait Dialog {
-    fn pick_file(dir: &Path, extensions: &FileExtensions) -> Option<PathBuf>;
+    fn pick_file(path: &Path, extensions: &FileExtensions) -> Option<PathBuf>;
 
     fn pick_dir(dir: &Path) -> Option<PathBuf>;
 
@@ -33,11 +33,11 @@ pub trait Dialog {
 pub struct SystemDialog;
 
 impl Dialog for SystemDialog {
-    fn pick_file(dir: &Path, extensions: &FileExtensions) -> Option<PathBuf> {
+    fn pick_file(path: &Path, extensions: &FileExtensions) -> Option<PathBuf> {
         FileDialog::new()
             .set_title("Open file to preview")
             .add_filter("Markdown", extensions.as_slice())
-            .set_directory(dir)
+            .set_directory(path)
             .set_can_create_directories(true)
             .pick_file()
     }

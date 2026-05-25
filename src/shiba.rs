@@ -13,6 +13,7 @@ use crate::renderer::{
 use crate::sanity::SanityTest;
 use crate::watcher::{PathFilter, Watcher};
 use anyhow::{Context as _, Error, Result};
+use std::borrow::Cow;
 use std::fs;
 use std::marker::PhantomData;
 use std::mem;
@@ -119,6 +120,19 @@ impl PreviewContent {
         };
         renderer.send_message_raw(MarkdownParser::new(&self.content, None, tokenizer))
     }
+}
+
+fn open_file_dialog_path<'a>(
+    current_file: Option<&'a Path>,
+    is_previewing_file: bool,
+    default_dir: impl FnOnce() -> Result<Cow<'a, Path>>,
+) -> Result<Cow<'a, Path>> {
+    if let Some(current_file) = is_previewing_file.then_some(current_file).flatten() {
+        if let Some(dir) = current_file.parent() {
+            return Ok(dir.into());
+        }
+    }
+    default_dir()
 }
 
 pub struct Shiba<R: Rendering, O, W, D> {
@@ -271,10 +285,20 @@ where
         Ok(())
     }
 
+    fn open_file_dialog_path(&self) -> Result<Cow<'_, Path>> {
+        open_file_dialog_path(
+            self.history.current().map(PathBuf::as_path),
+            !self.preview.content.is_empty(),
+            || self.config.dialog().default_dir(),
+        )
+    }
+
     fn open_file(&mut self) -> Result<()> {
         let extensions = self.config.watch().file_extensions();
-        let dir = self.config.dialog().default_dir()?;
-        let file = D::pick_file(&dir, extensions);
+        let file = {
+            let initial_path = self.open_file_dialog_path()?;
+            D::pick_file(&initial_path, extensions)
+        };
         #[cfg(target_os = "windows")]
         let file = file.and_then(|p| p.canonicalize().ok()); // Ensure \\? at the head of the path
 
@@ -566,5 +590,41 @@ where
         } else {
             0
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn open_file_dialog_path_uses_current_file_parent() {
+        let current_file = Path::new("/tmp/shiba/current/file.md");
+        let default_dir = Path::new("/tmp/shiba/default");
+
+        let path =
+            open_file_dialog_path(Some(current_file), true, || Ok(default_dir.into())).unwrap();
+
+        assert_eq!(path.as_ref(), Path::new("/tmp/shiba/current"));
+    }
+
+    #[test]
+    fn open_file_dialog_path_falls_back_to_default_dir() {
+        let default_dir = Path::new("/tmp/shiba/default");
+
+        let path = open_file_dialog_path(None, false, || Ok(default_dir.into())).unwrap();
+
+        assert_eq!(path.as_ref(), default_dir);
+    }
+
+    #[test]
+    fn open_file_dialog_path_ignores_history_without_preview() {
+        let history_file = Path::new("/tmp/shiba/history/file.md");
+        let default_dir = Path::new("/tmp/shiba/default");
+
+        let path =
+            open_file_dialog_path(Some(history_file), false, || Ok(default_dir.into())).unwrap();
+
+        assert_eq!(path.as_ref(), default_dir);
     }
 }
