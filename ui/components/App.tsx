@@ -18,6 +18,10 @@ import type { GlobalDispatcher } from '../dispatcher';
 // TODO: Use CSS variables to dynamically change the colorscheme and access theme colors from JavaScript and style.css.
 // https://mui.com/material-ui/customization/css-theme-variables/usage/
 const THEME = createTheme({ colorSchemes: { dark: true } });
+const ROOT_STYLE: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+};
 
 interface Props {
     dispatcher: GlobalDispatcher;
@@ -78,23 +82,30 @@ export const App: React.FC<Props> = ({ dispatcher }) => {
         sendMessage({ kind: 'init' });
     }, []); // Run only when component was mounted
 
+    const onContextMenu = (event: React.MouseEvent<HTMLElement>): void => {
+        event.preventDefault();
+        sendMessage({ kind: 'open_context_menu', position: [event.clientX, event.clientY] });
+    };
+
     return (
         <ThemeProvider theme={THEME}>
             <ConfigContext.Provider value={config}>
-                <Preview
-                    tree={previewTree}
-                    headings={headings}
-                    path={currentPath}
-                    dispatch={dispatch}
-                    sideBar={sideBar}
-                    alwaysOnTop={alwaysOnTop}
-                />
-                {searchInput}
-                {outlineDialog}
-                {historyDialog}
-                {guideDialog}
-                {welcomePage}
-                <Notification open={notifying} content={notification} dispatch={dispatch} />
+                <div style={ROOT_STYLE} onContextMenu={onContextMenu}>
+                    <Preview
+                        tree={previewTree}
+                        headings={headings}
+                        path={currentPath}
+                        dispatch={dispatch}
+                        sideBar={sideBar}
+                        alwaysOnTop={alwaysOnTop}
+                    />
+                    {searchInput}
+                    {outlineDialog}
+                    {historyDialog}
+                    {guideDialog}
+                    {welcomePage}
+                    <Notification open={notifying} content={notification} dispatch={dispatch} />
+                </div>
             </ConfigContext.Provider>
         </ThemeProvider>
     );

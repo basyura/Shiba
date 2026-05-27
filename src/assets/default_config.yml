@@ -135,3 +135,10 @@ dialog:
   # default_dir: ~/Documents
   # ```
   default_dir: null
+
+# Configuration related to opening the current Markdown file with an external editor.
+editor:
+  # Editor executable path. When set, the Editor menu opens the current Markdown file with this
+  # editor. On macOS, an `.app` bundle path is opened with `open -a`.
+  # Examples: `/Applications/MacVim.app` or `/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code`
+  path: null

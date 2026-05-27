@@ -314,6 +314,10 @@ export type MessageToMain =
           position?: [number, number];
       }
     | {
+          kind: 'open_context_menu';
+          position?: [number, number];
+      }
+    | {
           kind: 'toggle_menu_bar';
       }
     | {

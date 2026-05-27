@@ -31,3 +31,6 @@ preview:
 
 dialog:
   default_dir: /path/to/default_dir/
+
+editor:
+  path: /path/to/editor

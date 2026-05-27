@@ -430,6 +430,10 @@ impl Renderer for WebViewRenderer {
         self.menu.show_at(position, &self.window);
     }
 
+    fn show_context_menu_at(&self, position: Option<(f64, f64)>) {
+        self.menu.show_context_at(position, &self.window);
+    }
+
     fn toggle_menu(&mut self) -> Result<()> {
         self.menu.toggle(&self.window)
     }

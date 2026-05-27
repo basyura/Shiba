@@ -67,6 +67,7 @@ impl MenuEvents {
 #[derive(Clone)]
 pub struct Menu {
     menu_bar: MenuBar, // Note: This will remove menu from application on being dropped
+    context_menu: MenuBar,
     visibility: HashMap<WindowId, bool>,
     #[cfg(target_os = "macos")]
     window_menu: Submenu,
@@ -89,6 +90,7 @@ impl Menu {
         const MOD: Modifiers = Modifiers::CONTROL;
 
         let menu_bar = MenuBar::new();
+        let context_menu = MenuBar::new();
 
         // Custom menu items
         let settings = no_accel("Settings…");
@@ -109,6 +111,9 @@ impl Menu {
         let forward = accel("Forward", MOD, Code::BracketRight);
         let back = accel("Back", MOD, Code::BracketLeft);
         let history = accel("History…", MOD, Code::KeyY);
+        let editor = no_accel("Editor");
+        let context_reload = no_accel("Reload");
+        let inspector = no_accel("Inspector");
         let always_on_top = no_accel("Pin/Unpin On Top");
         let guide = no_accel("Show Guide…");
         let open_repo = no_accel("Open Repository Page");
@@ -215,6 +220,12 @@ impl Menu {
             &window_menu,
             &help_menu,
         ])?;
+        context_menu.append_items(&[
+            &context_reload,
+            &editor,
+            &PredefinedMenuItem::separator(),
+            &inspector,
+        ])?;
 
         #[rustfmt::skip]
         events.ids.extend({
@@ -234,6 +245,9 @@ impl Menu {
                 (zoom_in.into_id(),       ZoomIn),
                 (zoom_out.into_id(),      ZoomOut),
                 (history.into_id(),       History),
+                (context_reload.into_id(), Reload),
+                (editor.into_id(),        Editor),
+                (inspector.into_id(),     Inspector),
                 (always_on_top.into_id(), ToggleAlwaysOnTop),
                 (guide.into_id(),         Help),
                 (open_repo.into_id(),     OpenRepo),
@@ -247,6 +261,7 @@ impl Menu {
         log::debug!("Registered menu items: {:?}", events.ids);
         Ok(Self {
             menu_bar,
+            context_menu,
             visibility: HashMap::new(),
             #[cfg(target_os = "macos")]
             window_menu,
@@ -314,17 +329,27 @@ impl Menu {
     pub fn show_at(&self, position: Option<(f64, f64)>, window: &Window) {
         let position = position.map(|(x, y)| Position::Logical(LogicalPosition { x, y }));
         log::debug!("Showing context menu at {:?}", position);
+        self.show_menu(&self.menu_bar, position, window);
+    }
+
+    pub fn show_context_at(&self, position: Option<(f64, f64)>, window: &Window) {
+        let position = position.map(|(x, y)| Position::Logical(LogicalPosition { x, y }));
+        log::debug!("Showing preview context menu at {:?}", position);
+        self.show_menu(&self.context_menu, position, window);
+    }
+
+    fn show_menu(&self, menu: &MenuBar, position: Option<Position>, window: &Window) {
         // Safety: Using the handle returned from `Window::hwnd`.
         #[cfg(target_os = "windows")]
         unsafe {
-            self.menu_bar.show_context_menu_for_hwnd(window.hwnd() as _, position);
+            menu.show_context_menu_for_hwnd(window.hwnd() as _, position);
         }
         #[cfg(target_os = "linux")]
-        self.menu_bar.show_context_menu_for_gtk_window(window.gtk_window().as_ref(), position);
+        menu.show_context_menu_for_gtk_window(window.gtk_window().as_ref(), position);
         // Safety: Using the pointer returned from `Window::ns_view`.
         #[cfg(target_os = "macos")]
         unsafe {
-            self.menu_bar.show_context_menu_for_nsview(window.ns_view() as _, position);
+            menu.show_context_menu_for_nsview(window.ns_view() as _, position);
         }
     }
 }

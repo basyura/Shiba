@@ -450,6 +450,19 @@ impl Dialog {
 }
 
 #[non_exhaustive]
+#[derive(Default, Deserialize, Debug, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct Editor {
+    path: Option<PathBuf>,
+}
+
+impl Editor {
+    pub fn path(&self) -> Option<&Path> {
+        self.path.as_deref()
+    }
+}
+
+#[non_exhaustive]
 #[derive(Deserialize, Debug, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct UserConfig {
@@ -461,6 +474,8 @@ pub struct UserConfig {
     window: Window,
     preview: Preview,
     dialog: Dialog,
+    #[serde(default)]
+    editor: Editor,
 }
 
 impl Default for UserConfig {
@@ -473,6 +488,7 @@ impl Default for UserConfig {
             window: Window::default(),
             preview: Preview::default(),
             dialog: Dialog::default(),
+            editor: Editor::default(),
         }
     }
 }
@@ -658,6 +674,10 @@ impl Config {
         &self.user_config.dialog
     }
 
+    pub fn editor(&self) -> &Editor {
+        &self.user_config.editor
+    }
+
     pub fn debug(&self) -> bool {
         self.debug
     }
@@ -714,6 +734,7 @@ mod tests {
         assert_eq!(cfg.keymaps.get("Q"), Some(&KeyAction::Quit));
         assert_eq!(cfg.keymaps.get("ctrl+r"), Some(&KeyAction::History));
         assert_eq!(cfg.keymaps.get("f12"), Some(&KeyAction::OpenDevTools));
+        assert_eq!(cfg.editor.path(), Some(Path::new("/path/to/editor")));
     }
 
     #[test]

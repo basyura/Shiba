@@ -18,6 +18,7 @@ use std::fs;
 use std::marker::PhantomData;
 use std::mem;
 use std::path::{Path, PathBuf, MAIN_SEPARATOR};
+use std::process::Command;
 
 enum Zoom {
     In,
@@ -133,6 +134,24 @@ fn open_file_dialog_path<'a>(
         }
     }
     default_dir()
+}
+
+#[cfg(target_os = "macos")]
+fn is_macos_app_bundle(path: &Path) -> bool {
+    path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| ext.eq_ignore_ascii_case("app"))
+}
+
+fn editor_command(editor: &Path, current: &Path) -> Command {
+    #[cfg(target_os = "macos")]
+    if is_macos_app_bundle(editor) {
+        let mut command = Command::new("open");
+        command.arg("-a").arg(editor).arg(current);
+        return command;
+    }
+
+    let mut command = Command::new(editor);
+    command.arg(current);
+    command
 }
 
 pub struct Shiba<R: Rendering, O, W, D> {
@@ -380,6 +399,20 @@ where
         self.opener.open(&path)
     }
 
+    fn open_editor(&mut self) -> Result<()> {
+        let editor = self
+            .config
+            .editor()
+            .path()
+            .context("Editor path is not configured. Set editor.path in config.yml")?;
+        let current = self.history.current().context("No Markdown file is currently open")?;
+        log::debug!("Opening current Markdown file {:?} with editor {:?}", current, editor);
+        editor_command(editor, current)
+            .spawn()
+            .with_context(|| format!("Could not open {:?} with editor {:?}", current, editor))?;
+        Ok(())
+    }
+
     fn handle_renderer_message(&mut self, message: MessageFromRenderer) -> Result<RenderingFlow> {
         use MessageFromRenderer::*;
         match message {
@@ -434,6 +467,7 @@ where
             ToggleMaximized => self.toggle_maximized(),
             Quit => return Ok(RenderingFlow::Exit),
             OpenMenu { position } => self.renderer.show_menu_at(position),
+            OpenContextMenu { position } => self.renderer.show_context_menu_at(position),
             ToggleMenuBar => self.renderer.toggle_menu()?,
             ToggleAlwaysOnTop => self.toggle_always_on_top()?,
             OpenDevTools => self.renderer.open_devtools(),
@@ -467,6 +501,8 @@ where
             Help => self.renderer.send_message(MessageToRenderer::Help)?,
             OpenRepo => self.opener.open("https://github.com/rhysd/Shiba")?,
             EditConfig => self.open_config()?,
+            Editor => self.open_editor()?,
+            Inspector => self.renderer.open_devtools(),
             DeleteCookies => self.renderer.delete_cookies()?,
         }
         Ok(RenderingFlow::Continue)
@@ -626,5 +662,30 @@ mod tests {
             open_file_dialog_path(Some(history_file), false, || Ok(default_dir.into())).unwrap();
 
         assert_eq!(path.as_ref(), default_dir);
+    }
+
+    #[test]
+    fn editor_command_uses_editor_path() {
+        let command = editor_command(Path::new("/usr/bin/vim"), Path::new("/tmp/shiba/file.md"));
+
+        assert_eq!(command.get_program(), Path::new("/usr/bin/vim").as_os_str());
+        assert_eq!(command.get_args().collect::<Vec<_>>(), vec![Path::new("/tmp/shiba/file.md")]);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn editor_command_opens_app_bundle_with_open_command() {
+        let command =
+            editor_command(Path::new("/Applications/MacVim.app"), Path::new("/tmp/shiba/file.md"));
+
+        assert_eq!(command.get_program(), "open");
+        assert_eq!(
+            command.get_args().collect::<Vec<_>>(),
+            vec![
+                std::ffi::OsStr::new("-a"),
+                Path::new("/Applications/MacVim.app").as_os_str(),
+                Path::new("/tmp/shiba/file.md").as_os_str(),
+            ]
+        );
     }
 }

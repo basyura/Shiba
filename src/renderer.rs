@@ -77,6 +77,9 @@ pub enum MessageFromRenderer {
     OpenMenu {
         position: Option<(f64, f64)>,
     },
+    OpenContextMenu {
+        position: Option<(f64, f64)>,
+    },
     ToggleMenuBar,
     ToggleAlwaysOnTop,
     #[serde(rename = "open_devtools", alias = "open_dev_tools")]
@@ -116,6 +119,8 @@ pub enum MenuItem {
     ZoomIn,
     ZoomOut,
     History,
+    Editor,
+    Inspector,
     Help,
     OpenRepo,
     ToggleAlwaysOnTop,
@@ -196,6 +201,7 @@ pub trait Renderer {
     fn reposition_window_buttons(&self);
     fn window_appearance(&self) -> WindowAppearance;
     fn show_menu_at(&self, position: Option<(f64, f64)>);
+    fn show_context_menu_at(&self, position: Option<(f64, f64)>);
     fn toggle_menu(&mut self) -> Result<()>;
     fn open_devtools(&self);
     fn save_memory(&mut self, is_low: bool) -> Result<()>;
