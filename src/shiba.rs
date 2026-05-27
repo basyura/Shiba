@@ -141,9 +141,30 @@ fn is_macos_app_bundle(path: &Path) -> bool {
     path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| ext.eq_ignore_ascii_case("app"))
 }
 
+#[cfg(target_os = "macos")]
+fn macvim_command(editor: &Path, current: &Path) -> Option<Command> {
+    let name = editor.file_name()?.to_str()?;
+    if !name.eq_ignore_ascii_case("MacVim.app") {
+        return None;
+    }
+
+    let mvim = editor.join("Contents/bin/mvim");
+    if !mvim.is_file() {
+        return None;
+    }
+
+    let mut command = Command::new(mvim);
+    command.arg("--remote-silent").arg(current);
+    Some(command)
+}
+
 fn editor_command(editor: &Path, current: &Path) -> Command {
     #[cfg(target_os = "macos")]
     if is_macos_app_bundle(editor) {
+        if let Some(command) = macvim_command(editor, current) {
+            return command;
+        }
+
         let mut command = Command::new("open");
         command.arg("-a").arg(editor).arg(current);
         return command;
@@ -675,17 +696,42 @@ mod tests {
     #[cfg(target_os = "macos")]
     #[test]
     fn editor_command_opens_app_bundle_with_open_command() {
-        let command =
-            editor_command(Path::new("/Applications/MacVim.app"), Path::new("/tmp/shiba/file.md"));
+        let command = editor_command(
+            Path::new("/Applications/SomeEditor.app"),
+            Path::new("/tmp/shiba/file.md"),
+        );
 
         assert_eq!(command.get_program(), "open");
         assert_eq!(
             command.get_args().collect::<Vec<_>>(),
             vec![
                 std::ffi::OsStr::new("-a"),
-                Path::new("/Applications/MacVim.app").as_os_str(),
+                Path::new("/Applications/SomeEditor.app").as_os_str(),
                 Path::new("/tmp/shiba/file.md").as_os_str(),
             ]
         );
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn editor_command_uses_mvim_for_macvim_app_bundle() {
+        let root = std::env::temp_dir().join(format!("shiba-test-macvim-{}", std::process::id()));
+        let app = root.join("MacVim.app");
+        let mvim = app.join("Contents/bin/mvim");
+        std::fs::create_dir_all(mvim.parent().unwrap()).unwrap();
+        std::fs::write(&mvim, "").unwrap();
+
+        let command = editor_command(&app, Path::new("/tmp/shiba/file.md"));
+
+        assert_eq!(command.get_program(), mvim.as_os_str());
+        assert_eq!(
+            command.get_args().collect::<Vec<_>>(),
+            vec![
+                std::ffi::OsStr::new("--remote-silent"),
+                Path::new("/tmp/shiba/file.md").as_os_str(),
+            ]
+        );
+
+        std::fs::remove_dir_all(root).unwrap();
     }
 }

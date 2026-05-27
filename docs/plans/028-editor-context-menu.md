@@ -53,3 +53,9 @@ editor:
 - macOS で `editor.path` が `.app` バンドルを指す場合は、直接実行せず `open -a <app> <markdown>` で起動する。
 - `.app` 以外のパスは従来どおり実行ファイルとして扱い、`<editor> <markdown>` で起動する。
 - 起動コマンドの分岐をテストできる helper に分離する。
+
+## MacVim の既存ウインドウ対応
+
+- macOS で `editor.path` が `MacVim.app` を指す場合は、`open -a` ではなく MacVim の `mvim` コマンドを使う。
+- `mvim --remote-silent <markdown>` で、起動済み MacVim があれば既存ウインドウに開く。
+- MacVim.app 内の `mvim` が見つからない場合は従来の `.app` 起動にフォールバックする。

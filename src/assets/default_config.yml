@@ -139,6 +139,7 @@ dialog:
 # Configuration related to opening the current Markdown file with an external editor.
 editor:
   # Editor executable path. When set, the Editor menu opens the current Markdown file with this
-  # editor. On macOS, an `.app` bundle path is opened with `open -a`.
+  # editor. On macOS, an `.app` bundle path is opened with `open -a`. MacVim.app uses bundled
+  # `mvim --remote-silent` to open files in the running MacVim window.
   # Examples: `/Applications/MacVim.app` or `/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code`
   path: null
