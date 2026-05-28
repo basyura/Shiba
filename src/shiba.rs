@@ -171,6 +171,15 @@ fn editor_command(editor: &Path, current: &Path) -> Command {
     }
 
     let mut command = Command::new(editor);
+    #[cfg(target_os = "windows")]
+    {
+        // Strip \\?\ verbatim prefix; canonicalize() adds it on Windows but editors like gvim
+        // don't handle it correctly
+        if let Some(s) = current.to_str().and_then(|s| s.strip_prefix(r"\\?\")) {
+            command.arg(s);
+            return command;
+        }
+    }
     command.arg(current);
     command
 }
@@ -733,5 +742,33 @@ mod tests {
         );
 
         std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn editor_command_strips_verbatim_prefix_on_windows() {
+        let command = editor_command(
+            Path::new(r"C:\Program Files\vim\gvim.exe"),
+            Path::new(r"\\?\C:\repos\docs\file.md"),
+        );
+
+        assert_eq!(
+            command.get_args().collect::<Vec<_>>(),
+            vec![std::ffi::OsStr::new(r"C:\repos\docs\file.md")]
+        );
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn editor_command_keeps_normal_path_on_windows() {
+        let command = editor_command(
+            Path::new(r"C:\Program Files\vim\gvim.exe"),
+            Path::new(r"C:\repos\docs\file.md"),
+        );
+
+        assert_eq!(
+            command.get_args().collect::<Vec<_>>(),
+            vec![std::ffi::OsStr::new(r"C:\repos\docs\file.md")]
+        );
     }
 }
