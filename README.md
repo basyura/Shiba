@@ -18,7 +18,7 @@ This is a fork maintained for my personal use.
 - [x] ローカルの相対パス画像表示
 - [x] ピン留めショートカット
 - [x] ファイルを開く際のフォルダを開いてるファイル基準にする。ファイルを開いていない場合は default を使う。
-- [x] エディタで開く
+- [x] エディタで開く / ショートカットキー `<C-e>`
 - [ ] plantuml 対応
 - [ ] hitahint
 
