@@ -21,6 +21,7 @@ This is a fork maintained for my personal use.
 - [x] エディタで開く / ショートカットキー `<C-e>`
 - [ ] plantuml 対応
 - [ ] hitahint
+- [ ] ディレクトリとファイルのツリー表示
 
 ## Summary
 
