@@ -37,6 +37,7 @@ export type KeyAction =
     | 'ToggleMenuBar'
     | 'ToggleAlwaysOnTop'
     | 'OpenDevTools'
+    | 'OpenEditor'
     | 'Quit';
 
 export type KeyMaps = Record<string, KeyAction>;
@@ -325,6 +326,9 @@ export type MessageToMain =
       }
     | {
           kind: 'open_devtools';
+      }
+    | {
+          kind: 'open_editor';
       }
     | {
           kind: 'error';

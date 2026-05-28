@@ -136,6 +136,14 @@ fn open_file_dialog_path<'a>(
     default_dir()
 }
 
+fn current_preview_path(current_file: Option<&PathBuf>, is_previewing_file: bool) -> Option<&Path> {
+    if is_previewing_file {
+        current_file.map(PathBuf::as_path)
+    } else {
+        None
+    }
+}
+
 #[cfg(target_os = "macos")]
 fn is_macos_app_bundle(path: &Path) -> bool {
     path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| ext.eq_ignore_ascii_case("app"))
@@ -430,12 +438,17 @@ where
     }
 
     fn open_editor(&mut self) -> Result<()> {
+        let Some(current) =
+            current_preview_path(self.history.current(), !self.preview.content.is_empty())
+        else {
+            log::debug!("No Markdown file is currently shown. Skipping opening editor");
+            return Ok(());
+        };
         let editor = self
             .config
             .editor()
             .path()
             .context("Editor path is not configured. Set editor.path in config.yml")?;
-        let current = self.history.current().context("No Markdown file is currently open")?;
         log::debug!("Opening current Markdown file {:?} with editor {:?}", current, editor);
         editor_command(editor, current)
             .spawn()
@@ -501,6 +514,7 @@ where
             ToggleMenuBar => self.renderer.toggle_menu()?,
             ToggleAlwaysOnTop => self.toggle_always_on_top()?,
             OpenDevTools => self.renderer.open_devtools(),
+            OpenEditor => self.open_editor()?,
             Error { message } => anyhow::bail!("Error reported from renderer: {}", message),
         }
         Ok(RenderingFlow::Continue)
@@ -692,6 +706,24 @@ mod tests {
             open_file_dialog_path(Some(history_file), false, || Ok(default_dir.into())).unwrap();
 
         assert_eq!(path.as_ref(), default_dir);
+    }
+
+    #[test]
+    fn current_preview_path_uses_current_file_when_previewing() {
+        let current_file = PathBuf::from("/tmp/shiba/current/file.md");
+
+        let path = current_preview_path(Some(&current_file), true);
+
+        assert_eq!(path, Some(Path::new("/tmp/shiba/current/file.md")));
+    }
+
+    #[test]
+    fn current_preview_path_ignores_history_without_preview() {
+        let history_file = PathBuf::from("/tmp/shiba/history/file.md");
+
+        let path = current_preview_path(Some(&history_file), false);
+
+        assert_eq!(path, None);
     }
 
     #[test]

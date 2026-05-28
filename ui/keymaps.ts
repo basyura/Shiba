@@ -283,6 +283,13 @@ const KeyShortcuts: Record<KeyAction, KeyShortcut> = {
         },
     },
 
+    OpenEditor: {
+        description: 'Open the current Markdown file with the configured editor.',
+        dispatch(): void {
+            sendMessage({ kind: 'open_editor' });
+        },
+    },
+
     Quit: {
         description: 'Quit the application.',
         dispatch(): void {

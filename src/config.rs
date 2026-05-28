@@ -41,8 +41,45 @@ pub enum KeyAction {
     ToggleMenuBar,
     ToggleAlwaysOnTop,
     OpenDevTools,
+    OpenEditor,
     Quit,
 }
+
+#[rustfmt::skip]
+const DEFAULT_KEY_MAPPINGS_WITHOUT_EDITOR: &[(&str, KeyAction)] = {
+    use KeyAction::*;
+    &[
+        ("j",         ScrollDown),
+        ("k",         ScrollUp),
+        ("h",         ScrollLeft),
+        ("l",         ScrollRight),
+        ("ctrl+b",    Back),
+        ("ctrl+f",    Forward),
+        ("ctrl+o",    OpenFile),
+        ("ctrl+d",    ScrollPageDown),
+        ("ctrl+u",    ScrollPageUp),
+        ("ctrl+r",    History),
+        ("ctrl+n",    ScrollNextSection),
+        ("ctrl+p",    ScrollPrevSection),
+        ("/",         Search),
+        ("down",      ScrollDown),
+        ("up",        ScrollUp),
+        ("left",      ScrollLeft),
+        ("right",     ScrollRight),
+        ("pagedown",  ScrollPageDown),
+        ("pageup",    ScrollPageUp),
+        ("G",         ScrollBottom),
+        ("g g",       ScrollTop),
+        ("ctrl+down", ScrollBottom),
+        ("ctrl+up",   ScrollTop),
+        ("ctrl+j",    ScrollNextSection),
+        ("ctrl+k",    ScrollPrevSection),
+        ("ctrl+l",    ToggleSideBar),
+        ("ctrl+shift+p", ToggleAlwaysOnTop),
+        ("f12",       OpenDevTools),
+        ("?",         Help),
+    ]
+};
 
 #[rustfmt::skip]
 const DEFAULT_KEY_MAPPINGS: &[(&str, KeyAction)] = {
@@ -55,6 +92,7 @@ const DEFAULT_KEY_MAPPINGS: &[(&str, KeyAction)] = {
         ("ctrl+b",    Back),
         ("ctrl+f",    Forward),
         ("ctrl+o",    OpenFile),
+        ("ctrl+e",    OpenEditor),
         ("ctrl+d",    ScrollPageDown),
         ("ctrl+u",    ScrollPageUp),
         ("ctrl+r",    History),
@@ -216,6 +254,13 @@ const DEFAULT_TOGGLE_ALWAYS_ON_TOP_KEY: &str = "ctrl+shift+p";
 
 fn default_key_mappings() -> HashMap<String, KeyAction> {
     let mut keymaps = key_mappings(DEFAULT_KEY_MAPPINGS);
+    keymaps.remove("ctrl+shift+p");
+    keymaps.insert(DEFAULT_TOGGLE_ALWAYS_ON_TOP_KEY.to_string(), KeyAction::ToggleAlwaysOnTop);
+    keymaps
+}
+
+fn default_key_mappings_without_editor() -> HashMap<String, KeyAction> {
+    let mut keymaps = key_mappings(DEFAULT_KEY_MAPPINGS_WITHOUT_EDITOR);
     keymaps.remove("ctrl+shift+p");
     keymaps.insert(DEFAULT_TOGGLE_ALWAYS_ON_TOP_KEY.to_string(), KeyAction::ToggleAlwaysOnTop);
     keymaps
@@ -501,6 +546,7 @@ impl UserConfig {
             || self.keymaps == key_mappings(DEFAULT_KEY_MAPPINGS_WITHOUT_SIDEBAR_TOGGLE)
             || self.keymaps == key_mappings(DEFAULT_KEY_MAPPINGS_WITHOUT_SLASH)
             || self.keymaps == key_mappings(DEFAULT_KEY_MAPPINGS_WITHOUT_DEVTOOLS)
+            || self.keymaps == default_key_mappings_without_editor()
             || self.keymaps == key_mappings(DEFAULT_KEY_MAPPINGS)
             || self.keymaps == default_key_mappings_with_legacy_toggle_always_on_top()
         {
@@ -734,6 +780,7 @@ mod tests {
         assert_eq!(cfg.keymaps.get("Q"), Some(&KeyAction::Quit));
         assert_eq!(cfg.keymaps.get("ctrl+r"), Some(&KeyAction::History));
         assert_eq!(cfg.keymaps.get("f12"), Some(&KeyAction::OpenDevTools));
+        assert_eq!(cfg.keymaps.get("ctrl+e"), Some(&KeyAction::OpenEditor));
         assert_eq!(cfg.editor.path(), Some(Path::new("/path/to/editor")));
     }
 
@@ -835,6 +882,14 @@ mod tests {
             keymaps: default_key_mappings_with_legacy_toggle_always_on_top(),
             ..UserConfig::default()
         };
+        cfg.upgrade_keymaps();
+        assert_eq!(cfg.keymaps, default_key_mappings());
+    }
+
+    #[test]
+    fn upgrade_default_key_mappings_without_editor() {
+        let mut cfg =
+            UserConfig { keymaps: default_key_mappings_without_editor(), ..UserConfig::default() };
         cfg.upgrade_keymaps();
         assert_eq!(cfg.keymaps, default_key_mappings());
     }

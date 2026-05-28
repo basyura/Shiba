@@ -24,6 +24,7 @@ keymaps:
   ctrl+b: Back
   ctrl+f: Forward
   ctrl+o: OpenFile
+  ctrl+e: OpenEditor
   ctrl+d: ScrollPageDown
   ctrl+u: ScrollPageUp
   ctrl+r: History

@@ -84,6 +84,7 @@ pub enum MessageFromRenderer {
     ToggleAlwaysOnTop,
     #[serde(rename = "open_devtools", alias = "open_dev_tools")]
     OpenDevTools,
+    OpenEditor,
     Error {
         message: String,
     },
@@ -274,6 +275,12 @@ mod tests {
         let msg: MessageFromRenderer =
             serde_json::from_str(r#"{"kind":"open_dev_tools"}"#).unwrap();
         assert!(matches!(msg, MessageFromRenderer::OpenDevTools));
+    }
+
+    #[test]
+    fn parse_open_editor_message() {
+        let msg: MessageFromRenderer = serde_json::from_str(r#"{"kind":"open_editor"}"#).unwrap();
+        assert!(matches!(msg, MessageFromRenderer::OpenEditor));
     }
 
     #[test]
