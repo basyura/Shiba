@@ -499,10 +499,7 @@ where
             FileDialog => self.open_file()?,
             DirDialog => self.open_dir()?,
             OpenFile { path } => {
-                let path = PathBuf::from(path);
-                if self.preview.show(&path, &self.renderer)? {
-                    self.push_history(path)?;
-                }
+                self.preview_new(PathBuf::from(path))?;
             }
             ZoomIn => self.zoom(Zoom::In)?,
             ZoomOut => self.zoom(Zoom::Out)?,
