@@ -150,9 +150,60 @@ fn is_macos_app_bundle(path: &Path) -> bool {
 }
 
 #[cfg(target_os = "macos")]
+fn is_macvim_app_name(path: &Path) -> bool {
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| name.eq_ignore_ascii_case("MacVim.app"))
+}
+
+#[cfg(target_os = "macos")]
+fn find_macvim_app_in_cellar(cellar: &Path) -> Option<PathBuf> {
+    let mut pending = vec![cellar.to_path_buf()];
+    let mut apps = Vec::new();
+
+    while let Some(dir) = pending.pop() {
+        for entry in fs::read_dir(dir).ok()? {
+            let path = entry.ok()?.path();
+            if is_macvim_app_name(&path) && path.is_dir() {
+                apps.push(path);
+            } else if path.is_dir() {
+                pending.push(path);
+            }
+        }
+    }
+
+    apps.sort();
+    apps.pop()
+}
+
+#[cfg(target_os = "macos")]
+fn resolve_macvim_app(
+    editor: &Path,
+    applications_dir: &Path,
+    homebrew_cellar_dir: &Path,
+) -> Option<PathBuf> {
+    if editor.components().count() != 1 || !is_macvim_app_name(editor) {
+        return None;
+    }
+
+    let app = applications_dir.join("MacVim.app");
+    if app.is_dir() {
+        return Some(app);
+    }
+
+    find_macvim_app_in_cellar(homebrew_cellar_dir)
+}
+
+#[cfg(target_os = "macos")]
+fn resolve_editor_path(editor: &Path) -> Cow<'_, Path> {
+    resolve_macvim_app(editor, Path::new("/Applications"), Path::new("/opt/homebrew/Cellar/macvim"))
+        .map(Cow::Owned)
+        .unwrap_or_else(|| Cow::Borrowed(editor))
+}
+
+#[cfg(target_os = "macos")]
 fn macvim_command(editor: &Path, current: &Path) -> Option<Command> {
-    let name = editor.file_name()?.to_str()?;
-    if !name.eq_ignore_ascii_case("MacVim.app") {
+    if !is_macvim_app_name(editor) {
         return None;
     }
 
@@ -168,14 +219,17 @@ fn macvim_command(editor: &Path, current: &Path) -> Option<Command> {
 
 fn editor_command(editor: &Path, current: &Path) -> Command {
     #[cfg(target_os = "macos")]
-    if is_macos_app_bundle(editor) {
-        if let Some(command) = macvim_command(editor, current) {
+    {
+        let editor = resolve_editor_path(editor);
+        if is_macos_app_bundle(&editor) {
+            if let Some(command) = macvim_command(&editor, current) {
+                return command;
+            }
+
+            let mut command = Command::new("open");
+            command.arg("-a").arg(editor.as_ref()).arg(current);
             return command;
         }
-
-        let mut command = Command::new("open");
-        command.arg("-a").arg(editor).arg(current);
-        return command;
     }
 
     let mut command = Command::new(editor);
@@ -769,6 +823,66 @@ mod tests {
                 Path::new("/tmp/shiba/file.md").as_os_str(),
             ]
         );
+
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn resolve_macvim_app_prefers_applications_dir() {
+        let root =
+            std::env::temp_dir().join(format!("shiba-test-resolve-macvim-{}", std::process::id()));
+        let applications_dir = root.join("Applications");
+        let cellar_dir = root.join("Cellar/macvim");
+        let applications_app = applications_dir.join("MacVim.app");
+        let cellar_app = cellar_dir.join("9.1.0/MacVim.app");
+        std::fs::create_dir_all(&applications_app).unwrap();
+        std::fs::create_dir_all(&cellar_app).unwrap();
+
+        let resolved =
+            resolve_macvim_app(Path::new("MacVim.app"), &applications_dir, &cellar_dir).unwrap();
+
+        assert_eq!(resolved, applications_app);
+
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn resolve_macvim_app_falls_back_to_homebrew_cellar() {
+        let root = std::env::temp_dir()
+            .join(format!("shiba-test-resolve-macvim-cellar-{}", std::process::id()));
+        let applications_dir = root.join("Applications");
+        let cellar_dir = root.join("Cellar/macvim");
+        let cellar_app = cellar_dir.join("9.1.0/MacVim.app");
+        std::fs::create_dir_all(&applications_dir).unwrap();
+        std::fs::create_dir_all(&cellar_app).unwrap();
+
+        let resolved =
+            resolve_macvim_app(Path::new("MacVim.app"), &applications_dir, &cellar_dir).unwrap();
+
+        assert_eq!(resolved, cellar_app);
+
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn resolve_macvim_app_ignores_non_bare_macvim_path() {
+        let root = std::env::temp_dir()
+            .join(format!("shiba-test-resolve-macvim-ignore-{}", std::process::id()));
+        let applications_dir = root.join("Applications");
+        let cellar_dir = root.join("Cellar/macvim");
+        std::fs::create_dir_all(&applications_dir).unwrap();
+        std::fs::create_dir_all(&cellar_dir).unwrap();
+
+        let resolved = resolve_macvim_app(
+            Path::new("/Applications/MacVim.app"),
+            &applications_dir,
+            &cellar_dir,
+        );
+
+        assert_eq!(resolved, None);
 
         std::fs::remove_dir_all(root).unwrap();
     }
