@@ -321,7 +321,7 @@ export type MessageToMain =
     | {
           kind: 'open_context_menu';
           position?: [number, number];
-          selection_text?: string;
+          selectionText?: string;
       }
     | {
           kind: 'toggle_menu_bar';

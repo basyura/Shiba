@@ -26,13 +26,11 @@ import * as log from './log';
 // Global action dispatcher to handle IPC messages from the main and key shortcuts
 
 async function copyText(text: string): Promise<void> {
-    if (navigator.clipboard) {
-        try {
-            await navigator.clipboard.writeText(text);
-            return;
-        } catch (err) {
-            log.debug('navigator.clipboard.writeText failed. Falling back to execCommand.', err);
-        }
+    try {
+        await navigator.clipboard.writeText(text);
+        return;
+    } catch (err) {
+        log.debug('navigator.clipboard.writeText failed. Falling back to execCommand.', err);
     }
 
     const textarea = document.createElement('textarea');
@@ -42,6 +40,7 @@ async function copyText(text: string): Promise<void> {
     document.body.appendChild(textarea);
     try {
         textarea.select();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         document.execCommand('copy');
     } finally {
         textarea.remove();

@@ -82,6 +82,7 @@ pub enum MessageFromRenderer {
     },
     OpenContextMenu {
         position: Option<(f64, f64)>,
+        #[serde(alias = "selectionText")]
         selection_text: Option<String>,
     },
     ToggleMenuBar,
@@ -291,7 +292,7 @@ mod tests {
     #[test]
     fn parse_open_context_menu_message_with_selection_text() {
         let msg: MessageFromRenderer = serde_json::from_str(
-            r#"{"kind":"open_context_menu","position":[1,2],"selection_text":"hello"}"#,
+            r#"{"kind":"open_context_menu","position":[1,2],"selectionText":"hello"}"#,
         )
         .unwrap();
 

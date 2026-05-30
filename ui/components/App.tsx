@@ -103,7 +103,7 @@ export const App: React.FC<Props> = ({ dispatcher }) => {
         sendMessage({
             kind: 'open_context_menu',
             position: [event.clientX, event.clientY],
-            ...(selectionText.length > 0 ? { selection_text: selectionText } : {}),
+            ...(selectionText.length > 0 ? { selectionText } : {}),
         });
     };
 

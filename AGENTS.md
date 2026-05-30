@@ -48,6 +48,7 @@ RUSTC="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin/rustc" \
 ## Testing Guidelines
 - Add Rust unit/integration tests alongside modules in `src/` or in a `tests/` directory if needed.
 - When modifying code, add or update focused tests for the changed behavior. If tests are not added, state the reason.
+- After implementation, verify that lint checks pass.
 - Benchmarks live in `bench/benches`, fuzz targets in `fuzz/`.
 - Prefer running `cargo test` before PRs; include focused tests when touching core parsing or platform logic.
 
