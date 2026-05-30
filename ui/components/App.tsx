@@ -27,6 +27,21 @@ interface Props {
     dispatcher: GlobalDispatcher;
 }
 
+function selectedPreviewText(): string {
+    const selection = window.getSelection();
+    const article = document.querySelector('article');
+    if (!selection || !article || selection.rangeCount === 0) {
+        return '';
+    }
+
+    const { anchorNode, focusNode } = selection;
+    if (!anchorNode || !focusNode || !article.contains(anchorNode) || !article.contains(focusNode)) {
+        return '';
+    }
+
+    return selection.toString();
+}
+
 export const App: React.FC<Props> = ({ dispatcher }) => {
     const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
     const {
@@ -83,8 +98,13 @@ export const App: React.FC<Props> = ({ dispatcher }) => {
     }, []); // Run only when component was mounted
 
     const onContextMenu = (event: React.MouseEvent<HTMLElement>): void => {
+        const selectionText = selectedPreviewText();
         event.preventDefault();
-        sendMessage({ kind: 'open_context_menu', position: [event.clientX, event.clientY] });
+        sendMessage({
+            kind: 'open_context_menu',
+            position: [event.clientX, event.clientY],
+            ...(selectionText.length > 0 ? { selection_text: selectionText } : {}),
+        });
     };
 
     return (

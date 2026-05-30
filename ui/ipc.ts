@@ -264,6 +264,10 @@ export type MessageFromMain =
           pinned: boolean;
       }
     | {
+          kind: 'copy_text';
+          text: string;
+      }
+    | {
           kind: 'debug';
       };
 export type MessageToMain =
@@ -317,6 +321,7 @@ export type MessageToMain =
     | {
           kind: 'open_context_menu';
           position?: [number, number];
+          selection_text?: string;
       }
     | {
           kind: 'toggle_menu_bar';

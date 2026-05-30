@@ -257,6 +257,7 @@ pub struct Shiba<R: Rendering, O, W, D> {
     init_file: Option<PathBuf>,
     initialized: bool,
     pending_open: Vec<PathBuf>,
+    context_selection_text: Option<String>,
     _dialog: PhantomData<D>,
     #[cfg(feature = "__sanity")]
     sanity: SanityTest<R::EventSender>,
@@ -321,6 +322,7 @@ where
             init_file,
             initialized: false,
             pending_open: Vec::new(),
+            context_selection_text: None,
             _dialog: PhantomData,
             #[cfg(feature = "__sanity")]
             sanity: SanityTest::new(rendering.create_sender()),
@@ -561,7 +563,11 @@ where
             ToggleMaximized => self.toggle_maximized(),
             Quit => return Ok(RenderingFlow::Exit),
             OpenMenu { position } => self.renderer.show_menu_at(position),
-            OpenContextMenu { position } => self.renderer.show_context_menu_at(position),
+            OpenContextMenu { position, selection_text } => {
+                let has_selection = selection_text.as_ref().is_some_and(|text| !text.is_empty());
+                self.context_selection_text = selection_text;
+                self.renderer.show_context_menu_at(position, has_selection);
+            }
             ToggleMenuBar => self.renderer.toggle_menu()?,
             ToggleAlwaysOnTop => self.toggle_always_on_top()?,
             OpenDevTools => self.renderer.open_devtools(),
@@ -596,6 +602,11 @@ where
             Help => self.renderer.send_message(MessageToRenderer::Help)?,
             OpenRepo => self.opener.open("https://github.com/rhysd/Shiba")?,
             EditConfig => self.open_config()?,
+            Copy => {
+                if let Some(text) = &self.context_selection_text {
+                    self.renderer.send_message(MessageToRenderer::CopyText { text })?;
+                }
+            }
             Editor => self.open_editor()?,
             Inspector => self.renderer.open_devtools(),
             DeleteCookies => self.renderer.delete_cookies()?,

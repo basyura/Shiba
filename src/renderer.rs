@@ -49,6 +49,9 @@ pub enum MessageToRenderer<'a> {
     AlwaysOnTop {
         pinned: bool,
     },
+    CopyText {
+        text: &'a str,
+    },
 }
 
 #[derive(Deserialize, Debug)]
@@ -79,6 +82,7 @@ pub enum MessageFromRenderer {
     },
     OpenContextMenu {
         position: Option<(f64, f64)>,
+        selection_text: Option<String>,
     },
     ToggleMenuBar,
     ToggleAlwaysOnTop,
@@ -126,6 +130,7 @@ pub enum MenuItem {
     OpenRepo,
     ToggleAlwaysOnTop,
     EditConfig,
+    Copy,
     #[cfg(not(target_os = "macos"))]
     ToggleMenuBar,
     // TODO: Remove all data including history instead of only cookies
@@ -202,7 +207,7 @@ pub trait Renderer {
     fn reposition_window_buttons(&self);
     fn window_appearance(&self) -> WindowAppearance;
     fn show_menu_at(&self, position: Option<(f64, f64)>);
-    fn show_context_menu_at(&self, position: Option<(f64, f64)>);
+    fn show_context_menu_at(&self, position: Option<(f64, f64)>, has_selection: bool);
     fn toggle_menu(&mut self) -> Result<()>;
     fn open_devtools(&self);
     fn save_memory(&mut self, is_low: bool) -> Result<()>;
@@ -281,6 +286,22 @@ mod tests {
     fn parse_open_editor_message() {
         let msg: MessageFromRenderer = serde_json::from_str(r#"{"kind":"open_editor"}"#).unwrap();
         assert!(matches!(msg, MessageFromRenderer::OpenEditor));
+    }
+
+    #[test]
+    fn parse_open_context_menu_message_with_selection_text() {
+        let msg: MessageFromRenderer = serde_json::from_str(
+            r#"{"kind":"open_context_menu","position":[1,2],"selection_text":"hello"}"#,
+        )
+        .unwrap();
+
+        assert!(matches!(
+            msg,
+            MessageFromRenderer::OpenContextMenu {
+                position: Some((1.0, 2.0)),
+                selection_text: Some(ref text),
+            } if text == "hello"
+        ));
     }
 
     #[test]

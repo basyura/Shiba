@@ -25,6 +25,29 @@ import * as log from './log';
 
 // Global action dispatcher to handle IPC messages from the main and key shortcuts
 
+async function copyText(text: string): Promise<void> {
+    if (navigator.clipboard) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return;
+        } catch (err) {
+            log.debug('navigator.clipboard.writeText failed. Falling back to execCommand.', err);
+        }
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    try {
+        textarea.select();
+        document.execCommand('copy');
+    } finally {
+        textarea.remove();
+    }
+}
+
 export class GlobalDispatcher {
     public dispatch: Dispatch; // This prop will be updated by `App` component
     public state: State; // This prop will be updated by `App` component
@@ -135,6 +158,9 @@ export class GlobalDispatcher {
                     break;
                 case 'always_on_top':
                     this.dispatch(setAlwaysOnTop(msg.pinned));
+                    break;
+                case 'copy_text':
+                    await copyText(msg.text);
                     break;
                 case 'debug':
                     log.enableDebug();

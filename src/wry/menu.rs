@@ -68,6 +68,7 @@ impl MenuEvents {
 pub struct Menu {
     menu_bar: MenuBar, // Note: This will remove menu from application on being dropped
     context_menu: MenuBar,
+    context_copy: MenuItem,
     visibility: HashMap<WindowId, bool>,
     #[cfg(target_os = "macos")]
     window_menu: Submenu,
@@ -113,6 +114,8 @@ impl Menu {
         let history = accel("History…", MOD, Code::KeyY);
         let editor = no_accel("Editor");
         let context_reload = no_accel("Reload");
+        let context_copy = no_accel("コピー");
+        context_copy.set_enabled(false);
         let inspector = no_accel("Inspector");
         let always_on_top = no_accel("Pin/Unpin On Top");
         let guide = no_accel("Show Guide…");
@@ -221,6 +224,8 @@ impl Menu {
             &help_menu,
         ])?;
         context_menu.append_items(&[
+            &context_copy,
+            &PredefinedMenuItem::separator(),
             &context_reload,
             &editor,
             &PredefinedMenuItem::separator(),
@@ -246,6 +251,7 @@ impl Menu {
                 (zoom_out.into_id(),      ZoomOut),
                 (history.into_id(),       History),
                 (context_reload.into_id(), Reload),
+                (context_copy.clone().into_id(),  Copy),
                 (editor.into_id(),        Editor),
                 (inspector.into_id(),     Inspector),
                 (always_on_top.into_id(), ToggleAlwaysOnTop),
@@ -262,6 +268,7 @@ impl Menu {
         Ok(Self {
             menu_bar,
             context_menu,
+            context_copy,
             visibility: HashMap::new(),
             #[cfg(target_os = "macos")]
             window_menu,
@@ -332,8 +339,14 @@ impl Menu {
         self.show_menu(&self.menu_bar, position, window);
     }
 
-    pub fn show_context_at(&self, position: Option<(f64, f64)>, window: &Window) {
+    pub fn show_context_at(
+        &self,
+        position: Option<(f64, f64)>,
+        window: &Window,
+        has_selection: bool,
+    ) {
         let position = position.map(|(x, y)| Position::Logical(LogicalPosition { x, y }));
+        self.context_copy.set_enabled(has_selection);
         log::debug!("Showing preview context menu at {:?}", position);
         self.show_menu(&self.context_menu, position, window);
     }
