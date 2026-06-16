@@ -54,12 +54,8 @@ impl WindowsSingleInstance {
 
     pub fn send_open_files(&self, paths: Vec<PathBuf>) -> Result<()> {
         let hwnd = find_shiba_window().context("Could not find running Shiba window")?;
-        let payload = serde_json::to_vec(&OpenFilesPayload { paths })?;
-        let copy_data = COPYDATASTRUCT {
-            dwData: COPYDATA_OPEN_FILES,
-            cbData: payload.len().try_into().context("Open file payload is too large")?,
-            lpData: payload.as_ptr() as *mut c_void,
-        };
+        let payload = open_files_payload(paths)?;
+        let copy_data = copy_data_struct(&payload)?;
 
         // SAFETY: hwnd is found from EnumWindows. copy_data points to payload, which lives until SendMessageW returns.
         unsafe {
@@ -73,6 +69,18 @@ impl WindowsSingleInstance {
         restore_window(hwnd);
         Ok(())
     }
+}
+
+fn open_files_payload(paths: Vec<PathBuf>) -> Result<Vec<u8>> {
+    Ok(serde_json::to_vec(&OpenFilesPayload { paths })?)
+}
+
+fn copy_data_struct(payload: &[u8]) -> Result<COPYDATASTRUCT> {
+    Ok(COPYDATASTRUCT {
+        dwData: COPYDATA_OPEN_FILES,
+        cbData: payload.len().try_into().context("Open file payload is too large")?,
+        lpData: payload.as_ptr() as *mut c_void,
+    })
 }
 
 impl Drop for WindowsSingleInstance {
@@ -286,5 +294,61 @@ impl Drop for WindowsConsole {
                 log::error!("Failed to free console: {err}");
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use windows::Win32::UI::WindowsAndMessaging::WM_USER;
+
+    fn lparam_from_copy_data(copy_data: &COPYDATASTRUCT) -> LPARAM {
+        LPARAM((copy_data as *const COPYDATASTRUCT) as isize)
+    }
+
+    #[test]
+    fn open_files_from_copy_data_restores_paths() {
+        let paths = vec![PathBuf::from(r"C:\docs\A.md"), PathBuf::from(r"C:\docs\B.md")];
+        let payload = open_files_payload(paths.clone()).unwrap();
+        let copy_data = copy_data_struct(&payload).unwrap();
+
+        let restored = open_files_from_copy_data(WM_COPYDATA, lparam_from_copy_data(&copy_data));
+
+        assert_eq!(restored, Some(paths));
+    }
+
+    #[test]
+    fn open_files_from_copy_data_ignores_other_message() {
+        let payload = open_files_payload(vec![PathBuf::from(r"C:\docs\A.md")]).unwrap();
+        let copy_data = copy_data_struct(&payload).unwrap();
+
+        let restored = open_files_from_copy_data(WM_USER, lparam_from_copy_data(&copy_data));
+
+        assert_eq!(restored, None);
+    }
+
+    #[test]
+    fn open_files_from_copy_data_ignores_unknown_payload_kind() {
+        let payload = open_files_payload(vec![PathBuf::from(r"C:\docs\A.md")]).unwrap();
+        let mut copy_data = copy_data_struct(&payload).unwrap();
+        copy_data.dwData = COPYDATA_OPEN_FILES + 1;
+
+        let restored = open_files_from_copy_data(WM_COPYDATA, lparam_from_copy_data(&copy_data));
+
+        assert_eq!(restored, None);
+    }
+
+    #[test]
+    fn open_files_from_copy_data_ignores_invalid_payload() {
+        let mut payload = b"not json".to_vec();
+        let copy_data = COPYDATASTRUCT {
+            dwData: COPYDATA_OPEN_FILES,
+            cbData: payload.len().try_into().unwrap(),
+            lpData: payload.as_mut_ptr().cast(),
+        };
+
+        let restored = open_files_from_copy_data(WM_COPYDATA, lparam_from_copy_data(&copy_data));
+
+        assert_eq!(restored, None);
     }
 }
