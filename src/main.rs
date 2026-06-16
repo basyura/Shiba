@@ -25,6 +25,16 @@ fn main() -> Result<()> {
                 .format_timestamp(None)
                 .filter_module("html5ever", LevelFilter::Off)
                 .init();
+            #[cfg(target_os = "windows")]
+            let _single_instance = {
+                let single_instance = shiba_preview::WindowsSingleInstance::new()?;
+                if !single_instance.is_primary() {
+                    let paths = options.init_file.clone().into_iter().collect();
+                    single_instance.send_open_files(paths)?;
+                    return Ok(());
+                }
+                single_instance
+            };
             run(options)
         }
         Parsed::Help(help) => {

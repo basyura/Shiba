@@ -29,7 +29,7 @@ pub use markdown::{MarkdownContent, MarkdownParser};
 #[cfg(feature = "__bench")]
 pub use renderer::RawMessageWriter;
 #[cfg(target_os = "windows")]
-pub use windows::WindowsConsole;
+pub use windows::{WindowsConsole, WindowsSingleInstance};
 
 use anyhow::Result;
 use dialog::SystemDialog;

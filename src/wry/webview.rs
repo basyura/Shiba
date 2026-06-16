@@ -216,6 +216,8 @@ pub struct WebViewRenderer {
     zoom_level: ZoomLevel,
     always_on_top: bool,
     menu: Menu,
+    #[cfg(target_os = "windows")]
+    _window_registration: crate::windows::WindowRegistration,
 }
 
 impl WebViewRenderer {
@@ -283,13 +285,14 @@ impl WebViewRenderer {
 
         let window = builder.build(event_loop)?;
         #[cfg(target_os = "windows")]
-        {
+        let window_registration = {
             use tao::platform::windows::WindowExtWindows as _;
             use tao::window::Icon;
 
             let icon = Icon::from_rgba(TASKBAR_ICON_RGBA.into(), 256, 256).unwrap();
             window.set_taskbar_icon(Some(icon));
-        }
+            crate::windows::WindowRegistration::new(window.hwnd() as _, event_loop.create_proxy())?
+        };
         reposition_window_buttons(&window);
         if cfg!(target_os = "macos") || config.window().menu_bar {
             menu.toggle(&window)?;
@@ -309,7 +312,15 @@ impl WebViewRenderer {
             log::debug!("Opened DevTools for debugging");
         }
 
-        Ok(WebViewRenderer { webview, window, zoom_level, always_on_top, menu })
+        Ok(WebViewRenderer {
+            webview,
+            window,
+            zoom_level,
+            always_on_top,
+            menu,
+            #[cfg(target_os = "windows")]
+            _window_registration: window_registration,
+        })
     }
 }
 
